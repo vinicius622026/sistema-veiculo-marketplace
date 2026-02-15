@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Marketplace de Veículos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1>🚗 VeiculoMarket</h1>
+                <p class="tagline">Seu marketplace de veículos</p>
+            </div>
+            <nav>
+                <button class="btn btn-primary" onclick="showAddVehicleForm()">+ Anunciar Veículo</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Search and Filters Section -->
+        <section class="filters-section">
+            <h2>Buscar Veículos</h2>
+            <div class="filters-container">
+                <div class="filter-group">
+                    <input type="text" id="searchInput" placeholder="Buscar por marca, modelo..." class="search-input">
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="tipoFilter">Tipo</label>
+                        <select id="tipoFilter">
+                            <option value="">Todos</option>
+                            <option value="Carro">Carro</option>
+                            <option value="Moto">Moto</option>
+                            <option value="Caminhão">Caminhão</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="marcaFilter">Marca</label>
+                        <select id="marcaFilter">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="anoMin">Ano Mínimo</label>
+                        <input type="number" id="anoMin" placeholder="Ex: 2015">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="anoMax">Ano Máximo</label>
+                        <input type="number" id="anoMax" placeholder="Ex: 2024">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="precoMin">Preço Mínimo</label>
+                        <input type="number" id="precoMin" placeholder="Ex: 50000">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="precoMax">Preço Máximo</label>
+                        <input type="number" id="precoMax" placeholder="Ex: 100000">
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn btn-primary" onclick="applyFilters()">Buscar</button>
+                    <button class="btn btn-secondary" onclick="clearFilters()">Limpar Filtros</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section">
+            <div class="results-header">
+                <h2>Veículos Disponíveis</h2>
+                <span id="resultsCount" class="results-count">0 veículos encontrados</span>
+            </div>
+            <div id="vehiclesList" class="vehicles-grid">
+                <!-- Vehicles will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Vehicle Detail Modal -->
+        <div id="detailModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="vehicleDetail">
+                    <!-- Vehicle details will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Vehicle Modal -->
+        <div id="addVehicleModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeAddModal()">&times;</span>
+                <h2 id="formTitle">Anunciar Veículo</h2>
+                <form id="vehicleForm" onsubmit="handleSubmitVehicle(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tipo">Tipo *</label>
+                            <select id="tipo" required>
+                                <option value="">Selecione</option>
+                                <option value="Carro">Carro</option>
+                                <option value="Moto">Moto</option>
+                                <option value="Caminhão">Caminhão</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="marca">Marca *</label>
+                            <input type="text" id="marca" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modelo">Modelo *</label>
+                            <input type="text" id="modelo" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ano">Ano *</label>
+                            <input type="number" id="ano" required min="1900" max="2030">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="preco">Preço (R$) *</label>
+                            <input type="number" id="preco" required min="0" step="0.01">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="quilometragem">Quilometragem *</label>
+                            <input type="number" id="quilometragem" required min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cor">Cor</label>
+                            <input type="text" id="cor">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="combustivel">Combustível</label>
+                            <select id="combustivel">
+                                <option value="">Selecione</option>
+                                <option value="Gasolina">Gasolina</option>
+                                <option value="Etanol">Etanol</option>
+                                <option value="Flex">Flex</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Elétrico">Elétrico</option>
+                                <option value="Híbrido">Híbrido</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cambio">Câmbio</label>
+                            <select id="cambio">
+                                <option value="">Selecione</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Automático">Automático</option>
+                                <option value="Automatizado">Automatizado</option>
+                                <option value="CVT">CVT</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="portas">Portas</label>
+                            <input type="number" id="portas" min="0" max="10">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao">Descrição</label>
+                        <textarea id="descricao" rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="imagem">URL da Imagem</label>
+                        <input type="text" id="imagem" placeholder="https://...">
+                    </div>
+
+                    <h3>Informações do Vendedor</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vendedor">Nome</label>
+                            <input type="text" id="vendedor">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telefone">Telefone</label>
+                            <input type="text" id="telefone" placeholder="(11) 99999-9999">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cidade">Cidade</label>
+                            <input type="text" id="cidade">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estado">Estado</label>
+                            <input type="text" id="estado" maxlength="2" placeholder="SP">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 VeiculoMarket - Sistema de Marketplace de Veículos</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
