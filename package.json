@@ -1,0 +1,29 @@
+{
+  "name": "sistema-veiculo-marketplace",
+  "version": "1.0.0",
+  "description": "Sistema de Marketplace de Veículos - Similar ao Webmotors",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinicius622026/sistema-veiculo-marketplace.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vinicius622026/sistema-veiculo-marketplace/issues"
+  },
+  "homepage": "https://github.com/vinicius622026/sistema-veiculo-marketplace#readme",
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sqlite3": "^5.1.7"
+  }
+}
