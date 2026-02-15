@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/vinicius622026/sistema-veiculo-marketplace#readme",
   "dependencies": {
-    "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "sqlite3": "^5.1.7"
