@@ -1,0 +1,16 @@
+{
+  "name": "sistema-veiculo-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "prisma": "prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.15.0",
+    "@supabase/supabase-js": "^2.95.3"
+  },
+  "devDependencies": {
+    "prisma": "^4.15.0"
+  }
+}
