@@ -21,6 +21,10 @@ export default function NewAnuncio() {
 
       let fotoUrl: string | null = null
       if (file) {
+        // client-side validation for type and size
+        if (!file.type.startsWith('image/')) throw new Error('Apenas imagens são permitidas')
+        if (file.size > 5 * 1024 * 1024) throw new Error('Arquivo muito grande (máx 5MB)')
+
         // read file as base64 and send to server for secure upload
         const reader = new FileReader()
         const base64: string = await new Promise((res, rej) => {
@@ -36,9 +40,11 @@ export default function NewAnuncio() {
         const uploadData = await uploadRes.json()
         if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed')
         fotoUrl = uploadData.publicUrl
+        // if thumbnail returned, you can store it in payload too
+        if (uploadData.thumbnailUrl) payload.thumbnail = uploadData.thumbnailUrl
       }
 
-      const payload = { estoque_id: '', revenda_id: '', titulo, preco, cidade, estado, foto: fotoUrl }
+      const payload: any = { estoque_id: '', revenda_id: '', titulo, preco, cidade, estado, foto: fotoUrl }
       const res = await fetch('/api/anuncios', {
         method: 'POST',
         headers: {
