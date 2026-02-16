@@ -2,6 +2,20 @@ import { NextResponse } from 'next/server'
 import { prisma } from '../../../src/lib/prisma'
 import supabaseAdmin from '../../../src/lib/supabaseAdmin'
 
+function extractBucketAndPath(publicUrl: string) {
+  try {
+    const url = new URL(publicUrl)
+    const parts = url.pathname.split('/').filter(Boolean)
+    const publicIndex = parts.indexOf('public')
+    if (publicIndex >= 0 && parts.length > publicIndex + 1) {
+      const bucket = parts[publicIndex + 1]
+      const path = parts.slice(publicIndex + 2).join('/')
+      return { bucket, path }
+    }
+  } catch (e) { }
+  return null
+}
+
 async function getUserFromAuthHeader(req: Request) {
   const auth = req.headers.get('authorization')
   if (!auth) return null
@@ -48,6 +62,8 @@ export async function POST(req: Request) {
       estado: body.estado || '',
       visitas: 0,
       ativo: body.ativo ?? true,
+      foto_url: body.foto || null,
+      thumbnail_url: body.thumbnail || null,
     }})
     return NextResponse.json(anuncio)
   } catch (err) {
@@ -90,6 +106,22 @@ export async function DELETE(req: Request) {
     const revenda = await prisma.revenda.findUnique({ where: { id: existing.revenda_id } })
     if (!revenda) return NextResponse.json({ error: 'Revenda relacionada não encontrada' }, { status: 404 })
     if (revenda.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    // delete images from storage if present
+    const toDelete: Array<{ bucket: string, path: string }> = []
+    if ((existing as any).foto_url) {
+      const info = extractBucketAndPath((existing as any).foto_url)
+      if (info) toDelete.push(info)
+    }
+    if ((existing as any).thumbnail_url) {
+      const info = extractBucketAndPath((existing as any).thumbnail_url)
+      if (info) toDelete.push(info)
+    }
+    for (const item of toDelete) {
+      try {
+        await supabaseAdmin.storage.from(item.bucket).remove([item.path])
+      } catch (e) { /* continue */ }
+    }
 
     await prisma.anuncio.delete({ where: { id } })
     return NextResponse.json({ ok: true })
