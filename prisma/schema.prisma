@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  full_name  String
+  tipo_usuario String
+  avatar_url String?
+  telefone   String?
+  documento  String?
+  revenda_id String?
+  revenda    Revenda? @relation(fields: [revenda_id], references: [id])
+  created_at DateTime @default(now())
+}
+
+model Revenda {
+  id            String    @id @default(uuid())
+  owner_id      String
+  owner         User      @relation(fields: [owner_id], references: [id])
+  nome          String
+  cnpj          String    @unique
+  endereco      String
+  cidade        String
+  estado        String
+  telefone      String
+  email_contato String?
+  website       String?
+  logo_url      String?
+  ativo         Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  veiculos      Veiculo[]
+  anuncios      Anuncio[]
+  negociacoes_origem Negociacao[] @relation("origem")
+  negociacoes_destino Negociacao[] @relation("destino")
+  consignacoes_consignante Consignacao[] @relation("consignante")
+  consignacoes_consignataria Consignacao[] @relation("consignataria")
+  transacoes_vendedora Transacao[] @relation("vendedora")
+  transacoes_compradora Transacao[] @relation("compradora")
+}
+
+model Veiculo {
+  id         String    @id @default(uuid())
+  revenda_id String
+  revenda    Revenda   @relation(fields: [revenda_id], references: [id])
+  placa      String    @unique
+  chassi     String    @unique
+  marca      String
+  modelo     String
+  ano        Int
+  valor      Float
+  km         Int
+  combustivel String?
+  cor        String?
+  status     String
+  descricao  String?
+  fotos      String[]
+  created_at DateTime  @default(now())
+  anuncios   Anuncio[]
+  negociacoes Negociacao[]
+  consignacoes Consignacao[]
+  transacoes Transacao[]
+}
+
+model Anuncio {
+  id         String   @id @default(uuid())
+  estoque_id String
+  veiculo    Veiculo  @relation(fields: [estoque_id], references: [id])
+  revenda_id String
+  revenda    Revenda  @relation(fields: [revenda_id], references: [id])
+  titulo     String
+  descricao  String?
+  preco      Float
+  cidade     String
+  estado     String
+  visitas    Int      @default(0)
+  ativo      Boolean  @default(true)
+  created_at DateTime @default(now())
+}
+
+model Negociacao {
+  id                   String   @id @default(uuid())
+  revenda_origem_id    String
+  revenda_origem       Revenda  @relation("origem", fields: [revenda_origem_id], references: [id])
+  revenda_destino_id   String
+  revenda_destino      Revenda  @relation("destino", fields: [revenda_destino_id], references: [id])
+  veiculo_id           String
+  veiculo              Veiculo  @relation(fields: [veiculo_id], references: [id])
+  tipo_operacao        String
+  valor_solicitado     Float
+  valor_oferecido      Float?
+  status               String
+  created_at           DateTime @default(now())
+  transacao            Transacao?
+}
+
+model Consignacao {
+  id                        String   @id @default(uuid())
+  revenda_consignante_id    String
+  consignante               Revenda  @relation("consignante", fields: [revenda_consignante_id], references: [id])
+  revenda_consignataria_id  String
+  consignataria             Revenda  @relation("consignataria", fields: [revenda_consignataria_id], references: [id])
+  veiculo_id                String
+  veiculo                   Veiculo  @relation(fields: [veiculo_id], references: [id])
+  percentual_comissao       Float
+  status                    String
+  created_at                DateTime @default(now())
+}
+
+model Transacao {
+  id                     String   @id @default(uuid())
+  negociacao_id          String?  
+  negociacao             Negociacao? @relation(fields: [negociacao_id], references: [id])
+  revenda_vendedora_id   String
+  revenda_vendedora      Revenda  @relation("vendedora", fields: [revenda_vendedora_id], references: [id])
+  revenda_compradora_id  String
+  revenda_compradora     Revenda  @relation("compradora", fields: [revenda_compradora_id], references: [id])
+  veiculo_id             String
+  veiculo                Veiculo  @relation(fields: [veiculo_id], references: [id])
+  valor_final            Float
+  comissao_marketplace   Float
+  status_pagamento       String
+  created_at             DateTime @default(now())
+}
