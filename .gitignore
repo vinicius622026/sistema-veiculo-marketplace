@@ -1,0 +1,9 @@
+node_modules/
+.pnpm-debug.log
+.env
+.env.local
+.env.*.local
+/.next
+/dist
+.DS_Store
+pnpm-lock.yaml
