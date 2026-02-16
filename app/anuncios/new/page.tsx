@@ -25,23 +25,36 @@ export default function NewAnuncio() {
         if (!file.type.startsWith('image/')) throw new Error('Apenas imagens são permitidas')
         if (file.size > 5 * 1024 * 1024) throw new Error('Arquivo muito grande (máx 5MB)')
 
-        // read file as base64 and send to server for secure upload
-        const reader = new FileReader()
-        const base64: string = await new Promise((res, rej) => {
-          reader.onload = () => res(String(reader.result))
-          reader.onerror = rej
-          reader.readAsDataURL(file)
-        })
-        const uploadRes = await fetch('/api/uploads', {
+        // prefer presign -> proxy flow for large uploads and progress
+        const presignRes = await fetch('/api/uploads/presign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileName: file.name, contentType: file.type, base64 })
+          body: JSON.stringify({ fileName: file.name, contentType: file.type })
         })
-        const uploadData = await uploadRes.json()
-        if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed')
-        fotoUrl = uploadData.publicUrl
-        // if thumbnail returned, you can store it in payload too
-        if (uploadData.thumbnailUrl) payload.thumbnail = uploadData.thumbnailUrl
+        const presignData = await presignRes.json()
+        if (!presignRes.ok) throw new Error(presignData.error || 'Erro ao gerar presign')
+
+        // use XHR to track upload progress
+        const xhrUpload = () => new Promise<{ publicUrl: string }>((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+          xhr.open('POST', presignData.uploadProxy)
+          xhr.setRequestHeader('x-upload-path', presignData.path)
+          xhr.setRequestHeader('x-upload-token', presignData.token)
+          xhr.setRequestHeader('Content-Type', file.type)
+          xhr.upload.onprogress = (ev) => {
+            if (ev.lengthComputable) setUploadProgress(Math.round((ev.loaded / ev.total) * 100))
+          }
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try { resolve(JSON.parse(xhr.responseText)) } catch (e) { resolve({ publicUrl: '' }) }
+            } else reject(new Error('Upload failed: ' + xhr.status))
+          }
+          xhr.onerror = () => reject(new Error('Network error'))
+          xhr.send(file)
+        })
+
+        const uploadResult = await xhrUpload()
+        fotoUrl = uploadResult.publicUrl
       }
 
       const payload: any = { estoque_id: '', revenda_id: '', titulo, preco, cidade, estado, foto: fotoUrl }

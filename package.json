@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "prisma": "prisma"
+    "prisma": "prisma",
+    "cleanup-images": "node scripts/cleanup-orphan-images.js"
   },
   "dependencies": {
     "@prisma/client": "^4.15.0",
