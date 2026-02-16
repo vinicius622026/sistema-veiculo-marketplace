@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
-import { runCleanup } from '../../../../src/lib/cleanup'
-import supabaseAdmin from '../../../../src/lib/supabaseAdmin'
-import { prisma } from '../../../../src/lib/prisma'
+import fs from 'fs'
+import path from 'path'
+import supabaseAdmin from '../../../../../src/lib/supabaseAdmin'
+import { prisma } from '../../../../../src/lib/prisma'
+
+const LOG_FILE = path.resolve(process.cwd(), 'var', 'cleanup-history.log')
 
 async function getUserFromAuthHeader(req: Request) {
   const auth = req.headers.get('authorization')
@@ -12,17 +15,21 @@ async function getUserFromAuthHeader(req: Request) {
   return data.user
 }
 
-export async function POST(req: Request) {
-  // require logged admin via Supabase and DB users table
+export async function GET(req: Request) {
   const user = await getUserFromAuthHeader(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
     if (!dbUser) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    // expect dbUser.role or tipo_usuario to indicate admin
     if ((dbUser as any).role !== 'admin' && (dbUser as any).tipo_usuario !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    const removed = await runCleanup(['anuncios'])
-    return NextResponse.json({ ok: true, removed })
+
+    if (!fs.existsSync(LOG_FILE)) return NextResponse.json({ entries: [] })
+    const content = fs.readFileSync(LOG_FILE, 'utf-8')
+    const lines = content.split('\n').filter(Boolean)
+    const entries = lines.map(line => {
+      try { return JSON.parse(line) } catch (e) { return { raw: line } }
+    })
+    return NextResponse.json({ entries })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erro'
     return NextResponse.json({ error: message }, { status: 500 })

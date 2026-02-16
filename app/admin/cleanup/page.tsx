@@ -6,6 +6,7 @@ export default function AdminCleanup() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [userIsAdmin, setUserIsAdmin] = useState(false)
+  const [history, setHistory] = useState<any[]>([])
 
   useEffect(() => {
     let mounted = true
@@ -14,6 +15,17 @@ export default function AdminCleanup() {
       const user = data.session?.user
       const meta = (user as any)?.user_metadata || {}
       if (mounted) setUserIsAdmin(meta.role === 'admin' || meta.tipo_usuario === 'admin')
+      // fetch history
+      try {
+        const token = data.session?.access_token
+        if (token) {
+          const hRes = await fetch('/api/uploads/cleanup/history', { headers: { Authorization: `Bearer ${token}` } })
+          if (hRes.ok) {
+            const json = await hRes.json()
+            if (mounted) setHistory(json.entries || [])
+          }
+        }
+      } catch (e) { /**/ }
     }
     check()
     return () => { mounted = false }
@@ -46,6 +58,16 @@ export default function AdminCleanup() {
       {result && (
         <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">{JSON.stringify(result, null, 2)}</pre>
       )}
+      <div className="mt-6">
+        <h3 className="text-lg font-medium mb-2">Histórico de limpezas</h3>
+        {history.length === 0 && <p className="text-sm text-gray-600">Nenhum histórico encontrado.</p>}
+        {history.map((h, idx) => (
+          <div key={idx} className="mb-2 p-2 bg-white shadow-sm rounded">
+            <div className="text-xs text-gray-500">{h.at || h.timestamp || '—'}</div>
+            <pre className="text-sm overflow-auto">{JSON.stringify(h, null, 2)}</pre>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

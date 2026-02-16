@@ -112,13 +112,17 @@ export default function NewAnuncio() {
               }
             }} />
             {previewUrl && (
-              <div className="mt-2">
-                <img src={previewUrl} alt="preview" className="w-48 h-32 object-cover rounded" />
-              </div>
-            )}
-            {uploadProgress > 0 && uploadProgress < 100 && (
-              <div className="mt-2 w-full bg-gray-200 rounded">
-                <div className="bg-green-600 text-white text-xs rounded" style={{ width: `${uploadProgress}%` }}>{uploadProgress}%</div>
+              <div className="mt-2 flex items-center space-x-4">
+                <div className="w-36 h-28 rounded overflow-hidden shadow">
+                  <img src={previewUrl} alt="preview" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm text-gray-700 mb-2">Pré-visualização</div>
+                  <div className="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                    <div className="h-3 bg-gradient-to-r from-green-400 to-green-600 text-xs text-white text-center" style={{ width: `${uploadProgress}%` }} />
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">{uploadProgress}%</div>
+                </div>
               </div>
             )}
           </div>
