@@ -21,11 +21,21 @@ export default function NewAnuncio() {
 
       let fotoUrl: string | null = null
       if (file) {
-        const path = `anuncios/${Date.now()}_${file.name}`
-        const { error: uploadError } = await supabase.storage.from('anuncios').upload(path, file)
-        if (uploadError) throw uploadError
-        const { data: urlData } = supabase.storage.from('anuncios').getPublicUrl(path)
-        fotoUrl = urlData.publicUrl
+        // read file as base64 and send to server for secure upload
+        const reader = new FileReader()
+        const base64: string = await new Promise((res, rej) => {
+          reader.onload = () => res(String(reader.result))
+          reader.onerror = rej
+          reader.readAsDataURL(file)
+        })
+        const uploadRes = await fetch('/api/uploads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName: file.name, contentType: file.type, base64 })
+        })
+        const uploadData = await uploadRes.json()
+        if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed')
+        fotoUrl = uploadData.publicUrl
       }
 
       const payload = { estoque_id: '', revenda_id: '', titulo, preco, cidade, estado, foto: fotoUrl }
