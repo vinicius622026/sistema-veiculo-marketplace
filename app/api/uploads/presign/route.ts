@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import supabaseAdmin from '../../../../src/lib/supabaseAdmin'
 
 const SIGNING_SECRET = process.env.UPLOAD_SIGNING_SECRET || ''
 const UPLOAD_TTL = 60 * 5 // 5 minutes
@@ -8,8 +9,20 @@ function base64url(buf: Buffer) {
   return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
+async function getUserFromAuthHeader(req: Request) {
+  const auth = req.headers.get('authorization')
+  if (!auth) return null
+  const token = auth.replace('Bearer ', '')
+  const { data, error } = await supabaseAdmin.auth.getUser(token)
+  if (error || !data.user) return null
+  return data.user
+}
+
 export async function POST(req: Request) {
   if (!SIGNING_SECRET) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
+  // require authenticated user
+  const user = await getUserFromAuthHeader(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const body = await req.json()
     const { fileName, folder = 'anuncios', contentType } = body

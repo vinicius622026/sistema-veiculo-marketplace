@@ -10,6 +10,8 @@ export default function NewAnuncio() {
   const [estado, setEstado] = useState('')
   const [message, setMessage] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -99,7 +101,26 @@ export default function NewAnuncio() {
           </div>
           <div>
             <label className="block text-sm">Foto</label>
-            <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input type="file" accept="image/*" onChange={(e) => {
+              const f = e.target.files?.[0] ?? null
+              setFile(f)
+              if (f) {
+                const url = URL.createObjectURL(f)
+                setPreviewUrl(url)
+              } else {
+                if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null) }
+              }
+            }} />
+            {previewUrl && (
+              <div className="mt-2">
+                <img src={previewUrl} alt="preview" className="w-48 h-32 object-cover rounded" />
+              </div>
+            )}
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div className="mt-2 w-full bg-gray-200 rounded">
+                <div className="bg-green-600 text-white text-xs rounded" style={{ width: `${uploadProgress}%` }}>{uploadProgress}%</div>
+              </div>
+            )}
           </div>
           <div>
             <button className="bg-green-600 text-white px-4 py-2 rounded">Criar</button>
