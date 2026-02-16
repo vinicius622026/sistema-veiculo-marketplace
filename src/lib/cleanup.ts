@@ -17,7 +17,7 @@ function extractBucketAndPath(publicUrl: string) {
   return null
 }
 
-export async function runCleanup(buckets: string[] = ['anuncios']) {
+export async function runCleanup(buckets: string[] = ['anuncios'], pageSize = 1000) {
   const anuncios = await prisma.anuncio.findMany({ select: { foto_url: true, thumbnail_url: true } })
   const referenced = new Set<string>()
   for (const a of anuncios) {
@@ -33,16 +33,22 @@ export async function runCleanup(buckets: string[] = ['anuncios']) {
 
   const removed: string[] = []
   for (const bucket of buckets) {
-    const { data, error } = await supabaseAdmin.storage.from(bucket).list('', { limit: 1000 })
-    if (error) continue
-    const toRemove: string[] = []
-    for (const item of data) {
-      const key = `${bucket}/${item.name}`
-      if (!referenced.has(key)) toRemove.push(item.name)
-    }
-    if (toRemove.length) {
-      const { error: remErr } = await supabaseAdmin.storage.from(bucket).remove(toRemove)
-      if (!remErr) removed.push(...toRemove.map(n => `${bucket}/${n}`))
+    let offset = 0
+    while (true) {
+      const { data, error } = await supabaseAdmin.storage.from(bucket).list('', { limit: pageSize, offset })
+      if (error) break
+      if (!data || data.length === 0) break
+      const toRemove: string[] = []
+      for (const item of data) {
+        const key = `${bucket}/${item.name}`
+        if (!referenced.has(key)) toRemove.push(item.name)
+      }
+      if (toRemove.length) {
+        const { error: remErr } = await supabaseAdmin.storage.from(bucket).remove(toRemove)
+        if (!remErr) removed.push(...toRemove.map(n => `${bucket}/${n}`))
+      }
+      if (data.length < pageSize) break
+      offset += data.length
     }
   }
 
