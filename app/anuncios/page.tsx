@@ -5,12 +5,21 @@ interface Anuncio { id: string; titulo: string; preco: number; cidade: string; e
 
 export default function AnunciosPage() {
   const [anuncios, setAnuncios] = useState<Anuncio[]>([])
+  const [token, setToken] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/anuncios')
       .then((r) => r.json())
       .then(setAnuncios)
       .catch(() => setAnuncios([]))
+    // try to get supabase session token for protected actions
+    ;(async () => {
+      const s = (window as any).supabase
+      if (s && s.auth) {
+        const session = await s.auth.getSession()
+        setToken(session?.data?.session?.access_token ?? null)
+      }
+    })()
   }, [])
 
   return (
