@@ -28,20 +28,31 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   try {
+    // basic validation
+    if (!body.revenda_id) return NextResponse.json({ error: 'revenda_id is required' }, { status: 400 })
+    if (!body.titulo) return NextResponse.json({ error: 'titulo is required' }, { status: 400 })
+    if (typeof body.preco !== 'number' || body.preco <= 0) return NextResponse.json({ error: 'preco must be a positive number' }, { status: 400 })
+
+    // authorization: only owner of revenda can create anuncios
+    const revenda = await prisma.revenda.findUnique({ where: { id: body.revenda_id } })
+    if (!revenda) return NextResponse.json({ error: 'Revenda not found' }, { status: 404 })
+    if (revenda.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     const anuncio = await prisma.anuncio.create({ data: {
-      estoque_id: body.estoque_id,
+      estoque_id: body.estoque_id || '',
       revenda_id: body.revenda_id,
       titulo: body.titulo,
       descricao: body.descricao || null,
       preco: body.preco,
-      cidade: body.cidade,
-      estado: body.estado,
+      cidade: body.cidade || '',
+      estado: body.estado || '',
       visitas: 0,
       ativo: body.ativo ?? true,
     }})
     return NextResponse.json(anuncio)
   } catch (err) {
-    return NextResponse.json({ error: 'Erro ao criar anúncio' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Erro ao criar anúncio'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -51,10 +62,19 @@ export async function PUT(req: Request) {
   const body = await req.json()
   if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   try {
-    const anuncio = await prisma.anuncio.update({ where: { id: body.id }, data: body })
+    const existing = await prisma.anuncio.findUnique({ where: { id: body.id } })
+    if (!existing) return NextResponse.json({ error: 'Anúncio não encontrado' }, { status: 404 })
+    const revenda = await prisma.revenda.findUnique({ where: { id: existing.revenda_id } })
+    if (!revenda) return NextResponse.json({ error: 'Revenda relacionada não encontrada' }, { status: 404 })
+    if (revenda.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const updateData: any = { ...body }
+    delete updateData.id
+    const anuncio = await prisma.anuncio.update({ where: { id: body.id }, data: updateData })
     return NextResponse.json(anuncio)
   } catch (err) {
-    return NextResponse.json({ error: 'Erro ao atualizar anúncio' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Erro ao atualizar anúncio'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -65,9 +85,16 @@ export async function DELETE(req: Request) {
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   try {
+    const existing = await prisma.anuncio.findUnique({ where: { id } })
+    if (!existing) return NextResponse.json({ error: 'Anúncio não encontrado' }, { status: 404 })
+    const revenda = await prisma.revenda.findUnique({ where: { id: existing.revenda_id } })
+    if (!revenda) return NextResponse.json({ error: 'Revenda relacionada não encontrada' }, { status: 404 })
+    if (revenda.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     await prisma.anuncio.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (err) {
-    return NextResponse.json({ error: 'Erro ao deletar anúncio' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Erro ao deletar anúncio'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

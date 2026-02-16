@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import supabase from '../lib/supabaseClient'
 
 export default function Header() {
   return (
@@ -15,9 +16,7 @@ export default function Header() {
           <Link href="/login" className="text-blue-600 hover:underline">Entrar</Link>
           <button onClick={async () => {
             try {
-              // client-side logout
-              // @ts-ignore
-              if ((window as any).supabase) await (window as any).supabase.auth.signOut()
+              await supabase.auth.signOut()
               window.location.href = '/'
             } catch (e) { console.error(e) }
           }} className="ml-4 text-sm text-gray-500">Sair</button>

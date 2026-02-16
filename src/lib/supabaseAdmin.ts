@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole)
+if (!supabaseUrl || !supabaseServiceRole) {
+	console.warn('supabaseAdmin: missing SUPABASE config in env')
+}
+
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole, {
+	auth: { persistSession: false }
+})
 
 export default supabaseAdmin
