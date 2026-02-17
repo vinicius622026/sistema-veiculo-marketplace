@@ -25,14 +25,52 @@ async function getUserFromAuthHeader(req: Request) {
   return data.user
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const anuncios = await prisma.anuncio.findMany({
-      orderBy: { created_at: 'desc' },
+    const url = new URL(req.url)
+    const q = url.searchParams
+    const marca = q.get('marca') || undefined
+    const cidade = q.get('cidade') || undefined
+    const minPrice = q.get('minPrice') ? Number(q.get('minPrice')) : undefined
+    const maxPrice = q.get('maxPrice') ? Number(q.get('maxPrice')) : undefined
+    const sort = q.get('sort') || 'recent'
+    const page = q.get('page') ? Math.max(1, Number(q.get('page'))) : 1
+    const perPage = q.get('perPage') ? Math.max(1, Number(q.get('perPage'))) : 12
+
+    const where: any = { }
+    // only active anuncios by default
+    where.ativo = true
+
+    if (cidade) where.cidade = { contains: cidade, mode: 'insensitive' }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.preco = {}
+      if (minPrice !== undefined) where.preco.gte = minPrice
+      if (maxPrice !== undefined) where.preco.lte = maxPrice
+    }
+
+    // filter by veiculo.marca using relation filter
+    const veiculoFilter: any = {}
+    if (marca) veiculoFilter.marca = { contains: marca, mode: 'insensitive' }
+
+    // build order
+    let orderBy: any = { created_at: 'desc' }
+    if (sort === 'price_asc') orderBy = { preco: 'asc' }
+    else if (sort === 'price_desc') orderBy = { preco: 'desc' }
+    else if (sort === 'visitas') orderBy = { visitas: 'desc' }
+
+    const total = await prisma.anuncio.count({ where: { AND: [where, marca ? { veiculo: veiculoFilter } : {}] } })
+
+    const items = await prisma.anuncio.findMany({
+      where: { AND: [where, marca ? { veiculo: veiculoFilter } : {}] },
       include: { veiculo: true },
+      orderBy,
+      skip: (page - 1) * perPage,
+      take: perPage,
     })
-    return NextResponse.json(anuncios)
+
+    return NextResponse.json({ items, total, page, perPage })
   } catch (err) {
+    console.error('GET /api/anuncios error:', err)
     return NextResponse.json({ error: 'Erro ao buscar anúncios' }, { status: 500 })
   }
 }
@@ -41,6 +79,8 @@ export async function POST(req: Request) {
   const user = await getUserFromAuthHeader(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
+  console.log('POST /api/anuncios by user:', user?.id)
+  console.log('POST /api/anuncios body:', { titulo: body.titulo, revenda_id: body.revenda_id })
   try {
     // basic validation
     if (!body.revenda_id) return NextResponse.json({ error: 'revenda_id is required' }, { status: 400 })
@@ -52,8 +92,49 @@ export async function POST(req: Request) {
     if (!revenda) return NextResponse.json({ error: 'Revenda not found' }, { status: 404 })
     if (revenda.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+    // ensure we have a valid estoque_id (Veiculo). If not provided, create a Veiculo using provided vehicle data (avoid placeholders)
+    let estoqueId = body.estoque_id
+    if (!estoqueId) {
+      if (body.veiculo && typeof body.veiculo === 'object') {
+        const v = body.veiculo
+        const veic = await prisma.veiculo.create({ data: {
+          revenda_id: body.revenda_id,
+          placa: v.placa || '',
+          chassi: v.chassi || '',
+          marca: v.marca || '',
+          modelo: v.modelo || '',
+          ano: Number(v.ano) || 0,
+          valor: Number(v.valor) || 0,
+          km: Number(v.km) || 0,
+          combustivel: v.combustivel || null,
+          cor: v.cor || null,
+          status: v.status || 'novo',
+          descricao: v.descricao || null,
+          fotos: v.fotos || null,
+        }});
+        estoqueId = veic.id
+      } else {
+        const veic = await prisma.veiculo.create({ data: {
+          revenda_id: body.revenda_id,
+          placa: '',
+          chassi: '',
+          marca: '',
+          modelo: '',
+          ano: 0,
+          valor: 0,
+          km: 0,
+          combustivel: null,
+          cor: null,
+          status: 'novo',
+          descricao: null,
+          fotos: null,
+        }});
+        estoqueId = veic.id
+      }
+    }
+
     const anuncio = await prisma.anuncio.create({ data: {
-      estoque_id: body.estoque_id || '',
+      estoque_id: estoqueId,
       revenda_id: body.revenda_id,
       titulo: body.titulo,
       descricao: body.descricao || null,
@@ -67,6 +148,7 @@ export async function POST(req: Request) {
     }})
     return NextResponse.json(anuncio)
   } catch (err) {
+    console.error('POST /api/anuncios error:', err)
     const message = err instanceof Error ? err.message : 'Erro ao criar anúncio'
     return NextResponse.json({ error: message }, { status: 500 })
   }
@@ -76,6 +158,8 @@ export async function PUT(req: Request) {
   const user = await getUserFromAuthHeader(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
+  console.log('PUT /api/anuncios by user:', user?.id)
+  console.log('PUT /api/anuncios id:', body.id)
   if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   try {
     const existing = await prisma.anuncio.findUnique({ where: { id: body.id } })
@@ -89,6 +173,7 @@ export async function PUT(req: Request) {
     const anuncio = await prisma.anuncio.update({ where: { id: body.id }, data: updateData })
     return NextResponse.json(anuncio)
   } catch (err) {
+    console.error('PUT /api/anuncios error:', err)
     const message = err instanceof Error ? err.message : 'Erro ao atualizar anúncio'
     return NextResponse.json({ error: message }, { status: 500 })
   }
@@ -99,6 +184,7 @@ export async function DELETE(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
+  console.log('DELETE /api/anuncios by user:', user?.id, 'id:', id)
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   try {
     const existing = await prisma.anuncio.findUnique({ where: { id } })
@@ -126,6 +212,7 @@ export async function DELETE(req: Request) {
     await prisma.anuncio.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (err) {
+    console.error('DELETE /api/anuncios error:', err)
     const message = err instanceof Error ? err.message : 'Erro ao deletar anúncio'
     return NextResponse.json({ error: message }, { status: 500 })
   }
