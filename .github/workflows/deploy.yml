@@ -54,12 +54,12 @@ jobs:
           echo "=== Deploying migrations (Supabase CLI) ===" | tee -a ci-logs.txt
           echo "Deploying migrations with npx supabase@latest (project ref: ${SUPABASE_PROJECT_REF})" | tee -a ci-logs.txt
           # Try non-interactive login with the provided token (harmless if already logged in)
-          npx supabase@latest login --token "${SUPABASE_ACCESS_TOKEN}" 2>&1 | tee -a ci-logs.txt || true
+          pnpm dlx --yes supabase@latest login --token "${SUPABASE_ACCESS_TOKEN}" 2>&1 | tee -a ci-logs.txt || true
 
-          # Attempt a few common invocation forms for different CLI versions.
-          npx supabase@latest --project-ref "${SUPABASE_PROJECT_REF}" migrations deploy 2>&1 | tee -a ci-logs.txt || \
-            npx supabase@latest migrations deploy --project-ref "${SUPABASE_PROJECT_REF}" 2>&1 | tee -a ci-logs.txt || \
-            npx supabase@latest migration deploy --project-ref "${SUPABASE_PROJECT_REF}" 2>&1 | tee -a ci-logs.txt || true
+          # Try using pnpm dlx to invoke the Supabase CLI (handles runner environment)
+          pnpm dlx --yes supabase@latest --project-ref "${SUPABASE_PROJECT_REF}" migrations deploy 2>&1 | tee -a ci-logs.txt || \
+            pnpm dlx --yes supabase@latest migrations deploy --project-ref "${SUPABASE_PROJECT_REF}" 2>&1 | tee -a ci-logs.txt || \
+            pnpm dlx --yes supabase@latest migration deploy --project-ref "${SUPABASE_PROJECT_REF}" 2>&1 | tee -a ci-logs.txt || true
 
           echo "Note: Prisma direct DB connection (postgres:5432) is avoided when using Supabase CLI." | tee -a ci-logs.txt
 
