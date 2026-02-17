@@ -1,12 +1,30 @@
-import React from 'react'
+"use client"
+import React, { useEffect, useState } from 'react'
+import Header from '../src/components/Header'
+import Hero from '../src/components/Hero'
+import ListingCard from '../src/components/ListingCard'
 
 export default function Home() {
+  const [anuncios, setAnuncios] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch('/api/anuncios')
+      .then((r) => r.json())
+      .then((data) => setAnuncios(Array.isArray(data) ? data : []))
+      .catch(() => setAnuncios([]))
+  }, [])
+
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-4">Bem-vindo ao Sistema Veículo Marketplace</h1>
-        <p className="text-gray-600">Painel inicial — comece a construir suas páginas e rotas.</p>
-      </div>
-    </main>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <Hero />
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <h2 className="text-2xl font-semibold mb-4">Anúncios recentes</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {anuncios.length === 0 && <div>Nenhum anúncio encontrado.</div>}
+          {anuncios.map((a) => <ListingCard key={a.id} anuncio={a} />)}
+        </div>
+      </main>
+    </div>
   )
 }
