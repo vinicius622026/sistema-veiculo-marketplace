@@ -1,1 +1,5 @@
-// Cypress support file
+import './commands'
+
+Cypress.on('uncaught:exception', () => {
+	return false
+})
