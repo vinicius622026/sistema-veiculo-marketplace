@@ -10,7 +10,9 @@ on:
 jobs:
   db-migrate:
     runs-on: ubuntu-latest
-    if: ${{ secrets.DATABASE_URL != '' }}
+    # NOTE: removed job-level 'if' that referenced secrets because
+    # workflow dispatch validation rejects expressions using 'secrets'.
+    # The job will still read `DATABASE_URL` from secrets at runtime.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
