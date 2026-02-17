@@ -1,4 +1,4 @@
-name: CI / Build & Deploy
+name: CI / Build & Deploy (Vercel)
 
 on:
   push:
@@ -7,10 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  vercel-deploy:
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.set-image.outputs.image }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,28 +21,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
+      - name: Build (optional)
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
         run: pnpm run build
-
-      - name: Run tests
-        if: success()
-        run: pnpm test || true
-
-      - name: Set image output (for Docker flow)
-        id: set-image
-        run: echo "::set-output name=image::ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}"
-
-  # Option A: Deploy to Vercel (recommended for Next.js)
-  deploy-vercel:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
       - name: Vercel Deploy
         uses: amondnet/vercel-action@v20
@@ -54,50 +36,9 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./
           scope: ${{ secrets.VERCEL_SCOPE }}
-        env:
-          # You can expose to the build step via env here (but prefer setting them in Vercel dashboard)
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
-  # Option B: Build Docker image and push to GitHub Container Registry (GHCR). Then deploy from your infra.
-  deploy-docker:
-    needs: build
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ needs.build.outputs.image }}
-          build-args: |
-            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
-      - name: Deploy to server (example via SSH)
-        if: always()
-        env:
-          IMAGE: ${{ needs.build.outputs.image }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-        run: |
-          echo "Deploy placeholder: replace with your deploy commands"
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST 'docker pull "$IMAGE" && docker tag "$IMAGE" app:latest && docker-compose -f /path/to/docker-compose.yml up -d'
 
 # Notes:
-# - Define the secrets in your GitHub repo: Settings → Secrets → Actions.
-#   Example secrets: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
-#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, SSH_HOST, SSH_USER.
-# - Prefer configuring production env vars in your hosting provider (Vercel dashboard, Netlify env settings,
-#   Kubernetes Secrets, etc.) instead of embedding them in the workflow.
+# - Add these secrets in GitHub repo: Settings → Secrets → Actions:
+#   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_BASE_URL,
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, VERCEL_SCOPE
+# - Set `SUPABASE_SERVICE_ROLE_KEY` in Vercel dashboard only (server-side) if needed; do NOT expose it to client builds.
