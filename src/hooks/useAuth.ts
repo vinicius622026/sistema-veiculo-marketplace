@@ -1,12 +1,3 @@
-import { useState } from 'react'
-
-export function useAuth() {
-  // placeholder simples para isAuthenticated
-  const [isAuthenticated] = useState(false)
-  return { isAuthenticated }
-}
-
-export default null
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../services/supabaseClient'

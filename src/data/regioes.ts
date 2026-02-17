@@ -65,4 +65,3 @@ export const REGIOES: Regiao[] = [
   { id: 'norte', nome: 'Norte', estados: ESTADOS.filter(e => e.regiao === 'Norte') },
 ]
 
-export default null

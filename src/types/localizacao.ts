@@ -55,4 +55,3 @@ export interface AnuncioComDistancia {
   created_at: string
 }
 
-export default null

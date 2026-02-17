@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { supabase } from '@/src/services/supabaseClient'
-import { getWhatsAppLink } from '@/src/utils/helpers'
+import { supabase } from '@/services/supabaseClient'
+import { getWhatsAppLink } from '@/utils/helpers'
 
 interface Props {
   anuncioId: string
@@ -43,9 +43,9 @@ export default function ChatAnuncio({ anuncioId, telefoneTitular }: Props) {
     } catch (e) {
       // fallback: supabase.from(...).on('INSERT', ...)
       try {
-        supabase
+        (supabase as any)
           .from(`mensagens:anuncio_id=eq.${anuncioId}`)
-          .on('INSERT', (payload) => setMessages((p) => [...p, payload.new]))
+          .on('INSERT', (payload: any) => setMessages((p: any) => [...p, payload.new]))
           .subscribe()
       } catch (err) {
         // no-op
