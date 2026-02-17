@@ -35,6 +35,39 @@ async function main() {
     }
   }
 
+  // If we created an auth user, try to sign in (requires anon key) and save tokens for E2E
+  if (supabaseUserId) {
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+    if (anonKey && supabaseUrl) {
+      try {
+        const client = createClient(supabaseUrl, anonKey)
+        console.log('Signing in created user to obtain session tokens...')
+        const { data: signData, error: signErr } = await client.auth.signInWithPassword({
+          email: userEmail,
+          password: seedPassword
+        })
+        if (signErr) {
+          console.warn('Sign-in failed:', signErr.message || signErr)
+        } else if (signData && signData.session) {
+          const out = {
+            user: signData.user,
+            session: signData.session
+          }
+          const fs = require('fs')
+          const tmpPath = '/tmp/create-seed-auth.json'
+          fs.writeFileSync(tmpPath, JSON.stringify(out, null, 2))
+          console.log('Saved auth session to', tmpPath)
+        } else {
+          console.log('Sign-in returned no session data')
+        }
+      } catch (e) {
+        console.warn('Error during sign-in:', e.message || e)
+      }
+    } else {
+      console.log('Anon key not available; skipping sign-in/token save. You can set NEXT_PUBLIC_SUPABASE_ANON_KEY to enable this.')
+    }
+  }
+
   let user
   if (supabaseUserId) {
     user = await prisma.user.upsert({
