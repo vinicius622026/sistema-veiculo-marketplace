@@ -33,16 +33,14 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
-      - name: Deploy Supabase migrations via Supabase CLI (avoids direct 5432)
+      - name: Deploy Supabase migrations via Supabase CLI (using npx)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          echo "Installing Supabase CLI"
-          pnpm add -g supabase@latest
-          echo "Deploying migrations with Supabase CLI (project ref: ${SUPABASE_PROJECT_REF})"
-          supabase migrations deploy --project-ref "${SUPABASE_PROJECT_REF}" || true
+          echo "Deploying migrations with npx supabase@latest (project ref: ${SUPABASE_PROJECT_REF})"
+          npx supabase@latest migrations deploy --project-ref "${SUPABASE_PROJECT_REF}" || true
           echo "Note: Prisma migrations (postgres:5432) are skipped in favor of Supabase API delivery."
           echo "Running seed script if available (may still attempt DB connection)"
           pnpm run seed || true
