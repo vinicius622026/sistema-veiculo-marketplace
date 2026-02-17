@@ -9,6 +9,13 @@ export default function NewAnuncio() {
   const [cidade, setCidade] = useState('')
   const [estado, setEstado] = useState('')
   const [message, setMessage] = useState('')
+  const [revendas, setRevendas] = useState<any[]>([])
+  const [selectedRevenda, setSelectedRevenda] = useState<string>('')
+  // vehicle fields
+  const [marca, setMarca] = useState('')
+  const [modelo, setModelo] = useState('')
+  const [ano, setAno] = useState<number | ''>('')
+  const [valor, setValor] = useState<number | ''>('')
   const [file, setFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -20,6 +27,18 @@ export default function NewAnuncio() {
       const { data } = await supabase.auth.getSession()
       const token = data.session?.access_token
       if (!token) return window.location.href = '/login'
+      const userId = data.session?.user?.id
+
+      // fetch user's revendas
+      try {
+        const r = await fetch('/api/revendas', { headers: { Authorization: `Bearer ${token}` } })
+        if (r.ok) {
+          const list = await r.json()
+          const mine = list.filter((rv: any) => rv.owner_id === userId)
+          setRevendas(mine)
+          if (mine.length > 0 && !selectedRevenda) setSelectedRevenda(mine[0].id)
+        }
+      } catch (e) { /**/ }
 
       let fotoUrl: string | null = null
       if (file) {
@@ -59,7 +78,19 @@ export default function NewAnuncio() {
         fotoUrl = uploadResult.publicUrl
       }
 
-      const payload: any = { estoque_id: '', revenda_id: '', titulo, preco, cidade, estado, foto: fotoUrl }
+      if (!selectedRevenda) throw new Error('Selecione uma revenda antes de criar o anúncio')
+      if (!marca || !modelo || !ano || !valor) throw new Error('Preencha os dados do veículo')
+
+      const payload: any = {
+        estoque_id: '',
+        revenda_id: selectedRevenda,
+        titulo,
+        preco,
+        cidade,
+        estado,
+        foto: fotoUrl,
+        veiculo: { marca, modelo, ano: Number(ano), valor: Number(valor) }
+      }
       const res = await fetch('/api/anuncios', {
         method: 'POST',
         headers: {
@@ -97,6 +128,36 @@ export default function NewAnuncio() {
             <div>
               <label className="block text-sm">Estado</label>
               <input className="w-full border px-3 py-2 rounded" value={estado} onChange={(e) => setEstado(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm">Revenda</label>
+            {revendas.length === 0 ? (
+              <div className="text-sm text-red-600">Nenhuma revenda encontrada. Crie uma revenda antes.</div>
+            ) : (
+              <select value={selectedRevenda} onChange={(e) => setSelectedRevenda(e.target.value)} className="w-full border px-3 py-2 rounded">
+                {revendas.map((r) => <option key={r.id} value={r.id}>{r.nome}</option>)}
+              </select>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm">Marca</label>
+              <input className="w-full border px-3 py-2 rounded" value={marca} onChange={(e) => setMarca(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-sm">Modelo</label>
+              <input className="w-full border px-3 py-2 rounded" value={modelo} onChange={(e) => setModelo(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm">Ano</label>
+              <input type="number" className="w-full border px-3 py-2 rounded" value={ano as any} onChange={(e) => setAno(e.target.value ? Number(e.target.value) : '')} />
+            </div>
+            <div>
+              <label className="block text-sm">Valor</label>
+              <input type="number" className="w-full border px-3 py-2 rounded" value={valor as any} onChange={(e) => setValor(e.target.value ? Number(e.target.value) : '')} />
             </div>
           </div>
           <div>

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import fs from 'fs'
 import crypto from 'crypto'
 import supabaseAdmin from '../../../../src/lib/supabaseAdmin'
 
@@ -19,12 +20,18 @@ async function getUserFromAuthHeader(req: Request) {
 }
 
 export async function POST(req: Request) {
+  try { fs.appendFileSync('/tmp/presign-debug.log', `ENTRY ${new Date().toISOString()}\n`) } catch (e) {}
   if (!SIGNING_SECRET) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
-  // require authenticated user
-  const user = await getUserFromAuthHeader(req)
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
+    // require authenticated user (inside try so errors surface as JSON)
+    try { fs.appendFileSync('/tmp/presign-debug.log', `CHECK AUTH ${new Date().toISOString()}\n`) } catch (e) {}
+    const user = await getUserFromAuthHeader(req)
+    if (!user) {
+      try { fs.appendFileSync('/tmp/presign-debug.log', `NO USER\n`) } catch (e) {}
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const body = await req.json()
+    try { fs.appendFileSync('/tmp/presign-debug.log', `BODY PARSED\n`) } catch (e) {}
     const { fileName, folder = 'anuncios', contentType } = body
     if (!fileName || !contentType) return NextResponse.json({ error: 'fileName and contentType required' }, { status: 400 })
 
@@ -39,6 +46,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ uploadProxy: '/api/uploads/proxy', path, token, expires })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erro ao gerar presign'
+    try { fs.appendFileSync('/tmp/presign-debug.log', `ERROR: ${message}\n${err instanceof Error ? err.stack : ''}\n`) } catch (e) {}
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -59,3 +59,36 @@ pnpm run dev
 
 ---
 Feito de forma simples — se quiser, eu adiciono um `.env.example` e scripts no `package.json`.
+
+## Configurar secrets no GitHub (passo a passo, sem complicação)
+
+1) Garanta que o arquivo `.env` na raiz tem as variáveis corretas (o projeto também carrega `.env.local`):
+
+```text
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+NEXT_PUBLIC_SUPABASE_URL=https://xyz.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=service-role-key
+NEXT_PUBLIC_BASE_URL=https://seu-dominio
+```
+
+2) Método automático (recomendado): usar o script que já adicionei.
+
+```bash
+chmod +x scripts/set-github-secrets.sh
+./scripts/set-github-secrets.sh
+```
+
+O script carrega `.env` e `.env.local` automaticamente e usa o CLI `gh` (faça login com `gh auth login`).
+
+3) Método manual (se preferir): no GitHub vá em Settings → Secrets and variables → Actions → New repository secret e crie os secrets abaixo com os mesmos nomes:
+
+- `DATABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_BASE_URL`
+- (opcionais) `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+
+Se quiser, eu posso gerar um comando `gh secret set` pronto com os valores do seu `.env` para você colar (não envio valores sensíveis aqui).
+

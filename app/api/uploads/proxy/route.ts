@@ -28,11 +28,17 @@ export async function POST(req: Request) {
     const buf = Buffer.from(await req.arrayBuffer())
     if (buf.length === 0) return NextResponse.json({ error: 'empty body' }, { status: 400 })
 
-    const folder = path.split('/')[0]
-    const { error } = await supabaseAdmin.storage.from(folder).upload(path, buf, { contentType })
+    // bucket is first segment of path
+    const bucket = path.split('/')[0]
+    // remove leading "bucket/" prefix from object key when uploading to that bucket
+    let key = path
+    const prefix = `${bucket}/`
+    if (key.startsWith(prefix)) key = key.slice(prefix.length)
+
+    const { error } = await supabaseAdmin.storage.from(bucket).upload(key, buf, { contentType })
     if (error) return NextResponse.json({ error: error.message || 'upload failed' }, { status: 500 })
 
-    const { data } = supabaseAdmin.storage.from(folder).getPublicUrl(path)
+    const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(key)
     return NextResponse.json({ publicUrl: data.publicUrl })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'proxy upload error'
