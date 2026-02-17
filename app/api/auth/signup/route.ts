@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { ZodError } from 'zod'
 import { signupSchema } from '../../../../src/validations/auth'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -9,13 +10,21 @@ const client = createClient(url, anon)
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const dados = signupSchema.parse(body)
+    const dados = signupSchema.parse({
+      email: body?.email,
+      password: body?.password ?? body?.senha,
+      full_name: body?.full_name ?? body?.nome,
+      tipo_usuario: body?.tipo_usuario ?? 'comprador',
+    })
     const { data, error } = await client.auth.signUp({ email: dados.email, password: dados.password })
     if (error) return NextResponse.json({ erro: error.message || 'Erro ao criar conta' }, { status: 400 })
 
     // Optionally create profile via HTTP to our DB via serverless functions or rely on seed/user flow
     return NextResponse.json({ user: data.user, session: data.session }, { status: 201 })
   } catch (err) {
+    if (err instanceof ZodError) {
+      return NextResponse.json({ erro: 'Dados inválidos', detalhes: err.flatten() }, { status: 400 })
+    }
     console.error('POST /api/auth/signup error', err)
     return NextResponse.json({ erro: 'Erro ao criar conta' }, { status: 500 })
   }

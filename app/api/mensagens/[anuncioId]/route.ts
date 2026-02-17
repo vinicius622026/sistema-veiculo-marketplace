@@ -7,6 +7,10 @@ export async function GET(req: Request) {
     const parts = url.pathname.split('/')
     const anuncioId = parts[parts.length - 1]
     if (!anuncioId) return NextResponse.json({ erro: 'ID do anúncio não fornecido' }, { status: 400 })
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(anuncioId)) {
+      return NextResponse.json({ erro: 'ID do anúncio inválido' }, { status: 400 })
+    }
 
     const mensagens = await (prisma as any).mensagem.findMany({
       where: { anuncio_id: anuncioId },
