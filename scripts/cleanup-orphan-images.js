@@ -1,3 +1,4 @@
+require('dotenv').config()
 const { runCleanup } = require('../src/lib/cleanup')
 
 ;(async () => {
