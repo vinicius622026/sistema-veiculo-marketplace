@@ -27,11 +27,22 @@ jobs:
           corepack enable
           corepack prepare pnpm@latest --activate
 
+      - name: Create CI log file
+        run: |
+          rm -f ci-logs.txt || true
+          touch ci-logs.txt
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          set -o pipefail
+          echo "=== Install dependencies ===" | tee -a ci-logs.txt
+          pnpm install --frozen-lockfile 2>&1 | tee -a ci-logs.txt
 
       - name: Generate Prisma client
-        run: pnpm prisma generate
+        run: |
+          set -o pipefail
+          echo "=== Prisma generate ===" | tee -a ci-logs.txt
+          pnpm prisma generate 2>&1 | tee -a ci-logs.txt
 
       - name: Deploy Supabase migrations via Supabase CLI (using npx)
         env:
@@ -39,11 +50,32 @@ jobs:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          echo "Deploying migrations with npx supabase@latest (project ref: ${SUPABASE_PROJECT_REF})"
-          npx supabase@latest migrations deploy --project-ref "${SUPABASE_PROJECT_REF}" || true
-          echo "Note: Prisma migrations (postgres:5432) are skipped in favor of Supabase API delivery."
-          echo "Running seed script if available (may still attempt DB connection)"
-          pnpm run seed || true
+          set -o pipefail
+          echo "=== Deploying migrations (Supabase CLI) ===" | tee -a ci-logs.txt
+          echo "Deploying migrations with npx supabase@latest (project ref: ${SUPABASE_PROJECT_REF})" | tee -a ci-logs.txt
+          # Try non-interactive login with the provided token (harmless if already logged in)
+          npx supabase@latest login --token "${SUPABASE_ACCESS_TOKEN}" 2>&1 | tee -a ci-logs.txt || true
+
+          # Attempt a few common invocation forms for different CLI versions.
+          npx supabase@latest --project-ref "${SUPABASE_PROJECT_REF}" migrations deploy 2>&1 | tee -a ci-logs.txt || \
+            npx supabase@latest migrations deploy --project-ref "${SUPABASE_PROJECT_REF}" 2>&1 | tee -a ci-logs.txt || \
+            npx supabase@latest migration deploy --project-ref "${SUPABASE_PROJECT_REF}" 2>&1 | tee -a ci-logs.txt || true
+
+          echo "Note: Prisma direct DB connection (postgres:5432) is avoided when using Supabase CLI." | tee -a ci-logs.txt
+
+          # Run seed only if DATABASE_URL is provided (optional); avoid failing the job if missing.
+          if [ -n "${DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL present — running seed" | tee -a ci-logs.txt
+            pnpm run seed 2>&1 | tee -a ci-logs.txt || true
+          else
+            echo "DATABASE_URL not set — skipping seed in CI" | tee -a ci-logs.txt
+          fi
+
+      - name: Upload CI logs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: ci-logs.txt
 
   vercel-deploy:
     needs: db-migrate
