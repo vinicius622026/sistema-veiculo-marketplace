@@ -20,6 +20,9 @@ model User {
   // removed ambiguous relation to `Revenda` (handled via `owner_revendas` and `owner_id` on `Revenda`)
   created_at   DateTime  @default(now())
   Revendas     Revenda[] @relation("owner_revendas")
+  Favoritos    Favorito[]
+  Notificacoes Notificacao[]
+  Tickets      TicketSuporte[]
 }
 
 model Revenda {
@@ -40,6 +43,8 @@ model Revenda {
   owner    User      @relation("owner_revendas", fields: [owner_id], references: [id])
   Veiculos Veiculo[]
   Anuncios Anuncio[]
+  Webhooks Webhook[]
+  Assinaturas Assinatura[]
   // removed ambiguous back-reference to users; use `owner_id` + `owner_revendas` relation instead
 }
 
@@ -81,4 +86,116 @@ model Anuncio {
 
   revenda Revenda @relation(fields: [revenda_id], references: [id])
   veiculo Veiculo @relation(fields: [estoque_id], references: [id])
+  Mensagens Mensagem[]
+  Fotos AnuncioFoto[]
+  Favoritos Favorito[]
+  Visitas VisitaAnuncio[]
+}
+
+model Mensagem {
+  id              String   @id @default(uuid())
+  anuncio_id      String
+  sender_nome     String
+  sender_telefone String
+  conteudo        String
+  created_at      DateTime @default(now())
+
+  anuncio Anuncio @relation(fields: [anuncio_id], references: [id])
+}
+
+model Favorito {
+  id         String   @id @default(uuid())
+  user_id    String
+  anuncio_id String
+  created_at DateTime @default(now())
+
+  user    User    @relation(fields: [user_id], references: [id])
+  anuncio Anuncio @relation(fields: [anuncio_id], references: [id])
+}
+
+model VisitaAnuncio {
+  id         String   @id @default(uuid())
+  anuncio_id String
+  ip         String?
+  user_agent String?
+  created_at DateTime @default(now())
+
+  anuncio Anuncio @relation(fields: [anuncio_id], references: [id])
+}
+
+model AnuncioFoto {
+  id         String   @id @default(uuid())
+  anuncio_id String
+  url        String
+  ordem      Int      @default(0)
+  created_at DateTime @default(now())
+
+  anuncio Anuncio @relation(fields: [anuncio_id], references: [id])
+}
+
+model Notificacao {
+  id         String   @id @default(uuid())
+  user_id    String
+  titulo     String
+  mensagem   String
+  lida       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+}
+
+model TicketSuporte {
+  id         String   @id @default(uuid())
+  user_id    String
+  assunto    String
+  status     String
+  prioridade String
+  created_at DateTime @default(now())
+
+  user      User            @relation(fields: [user_id], references: [id])
+  mensagens TicketMensagem[]
+}
+
+model TicketMensagem {
+  id         String   @id @default(uuid())
+  ticket_id  String
+  autor      String
+  mensagem   String
+  created_at DateTime @default(now())
+
+  ticket TicketSuporte @relation(fields: [ticket_id], references: [id])
+}
+
+model Webhook {
+  id         String   @id @default(uuid())
+  revenda_id String
+  url        String
+  eventos    String
+  ativo      Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  revenda Revenda @relation(fields: [revenda_id], references: [id])
+}
+
+model Plano {
+  id             String   @id @default(uuid())
+  nome           String
+  preco          Float
+  limite_anuncios Int
+  created_at     DateTime @default(now())
+
+  assinaturas Assinatura[]
+}
+
+model Assinatura {
+  id         String   @id @default(uuid())
+  revenda_id String
+  plano_id   String
+  status     String
+  inicio     DateTime
+  fim        DateTime?
+  created_at DateTime @default(now())
+
+  revenda Revenda @relation(fields: [revenda_id], references: [id])
+  plano   Plano   @relation(fields: [plano_id], references: [id])
 }
