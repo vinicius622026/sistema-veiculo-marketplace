@@ -1,0 +1,68 @@
+import { Regiao, Estado, Cidade } from '@/types/localizacao'
+
+export const ESTADOS: Estado[] = [
+  { id: 'sp', nome: 'São Paulo', sigla: 'SP', regiao: 'Sudeste', latitude: -23.5505, longitude: -46.6333 },
+  { id: 'rj', nome: 'Rio de Janeiro', sigla: 'RJ', regiao: 'Sudeste', latitude: -22.9068, longitude: -43.1729 },
+  { id: 'mg', nome: 'Minas Gerais', sigla: 'MG', regiao: 'Sudeste', latitude: -19.8267, longitude: -43.9427 },
+  { id: 'es', nome: 'Espírito Santo', sigla: 'ES', regiao: 'Sudeste', latitude: -20.2976, longitude: -40.2958 },
+  { id: 'rs', nome: 'Rio Grande do Sul', sigla: 'RS', regiao: 'Sul', latitude: -30.0346, longitude: -51.2177 },
+  { id: 'sc', nome: 'Santa Catarina', sigla: 'SC', regiao: 'Sul', latitude: -27.5953, longitude: -48.5382 },
+  { id: 'pr', nome: 'Paraná', sigla: 'PR', regiao: 'Sul', latitude: -25.4284, longitude: -49.2733 },
+  { id: 'ba', nome: 'Bahia', sigla: 'BA', regiao: 'Nordeste', latitude: -12.9822, longitude: -38.5104 },
+  { id: 'pe', nome: 'Pernambuco', sigla: 'PE', regiao: 'Nordeste', latitude: -8.2880, longitude: -35.0835 },
+  { id: 'ce', nome: 'Ceará', sigla: 'CE', regiao: 'Nordeste', latitude: -3.7319, longitude: -38.5267 },
+  { id: 'ma', nome: 'Maranhão', sigla: 'MA', regiao: 'Nordeste', latitude: -2.8967, longitude: -44.2942 },
+  { id: 'pi', nome: 'Piauí', sigla: 'PI', regiao: 'Nordeste', latitude: -5.0892, longitude: -42.8019 },
+  { id: 'pb', nome: 'Paraíba', sigla: 'PB', regiao: 'Nordeste', latitude: -7.1195, longitude: -34.8450 },
+  { id: 'rn', nome: 'Rio Grande do Norte', sigla: 'RN', regiao: 'Nordeste', latitude: -5.7942, longitude: -35.2110 },
+  { id: 'al', nome: 'Alagoas', sigla: 'AL', regiao: 'Nordeste', latitude: -9.5713, longitude: -36.7820 },
+  { id: 'df', nome: 'Distrito Federal', sigla: 'DF', regiao: 'Centro-Oeste', latitude: -15.7942, longitude: -47.8822 },
+  { id: 'go', nome: 'Goiás', sigla: 'GO', regiao: 'Centro-Oeste', latitude: -15.8267, longitude: -48.9456 },
+  { id: 'mt', nome: 'Mato Grosso', sigla: 'MT', regiao: 'Centro-Oeste', latitude: -13.6929, longitude: -56.1211 },
+  { id: 'ms', nome: 'Mato Grosso do Sul', sigla: 'MS', regiao: 'Centro-Oeste', latitude: -19.0150, longitude: -54.6109 },
+  { id: 'am', nome: 'Amazonas', sigla: 'AM', regiao: 'Norte', latitude: -3.1190, longitude: -60.0217 },
+  { id: 'pa', nome: 'Pará', sigla: 'PA', regiao: 'Norte', latitude: -1.4560, longitude: -48.5044 },
+  { id: 'ac', nome: 'Acre', sigla: 'AC', regiao: 'Norte', latitude: -9.9757, longitude: -67.8495 },
+  { id: 'ap', nome: 'Amapá', sigla: 'AP', regiao: 'Norte', latitude: 0.9469, longitude: -52.0068 },
+  { id: 'rr', nome: 'Roraima', sigla: 'RR', regiao: 'Norte', latitude: 2.7396, longitude: -60.6792 },
+  { id: 'to', nome: 'Tocantins', sigla: 'TO', regiao: 'Norte', latitude: -10.1697, longitude: -48.3240 },
+]
+
+export const PRINCIPAIS_CIDADES: Cidade[] = [
+  { id: 'sp-sp', nome: 'São Paulo', estado: 'SP', latitude: -23.5505, longitude: -46.6333, populacao: 12400000, regiao: 'Sudeste' },
+  { id: 'campinas-sp', nome: 'Campinas', estado: 'SP', latitude: -22.9068, longitude: -47.0632, populacao: 1219000, regiao: 'Sudeste' },
+  { id: 'santos-sp', nome: 'Santos', estado: 'SP', latitude: -23.9608, longitude: -46.3344, populacao: 433656, regiao: 'Sudeste' },
+  { id: 'sorocaba-sp', nome: 'Sorocaba', estado: 'SP', latitude: -23.4937, longitude: -47.4556, populacao: 687376, regiao: 'Sudeste' },
+  { id: 'rio-rj', nome: 'Rio de Janeiro', estado: 'RJ', latitude: -22.9068, longitude: -43.1729, populacao: 6320000, regiao: 'Sudeste' },
+  { id: 'niteroi-rj', nome: 'Niterói', estado: 'RJ', latitude: -22.8833, longitude: -43.1017, populacao: 487562, regiao: 'Sudeste' },
+  { id: 'duque-caxias-rj', nome: 'Duque de Caxias', estado: 'RJ', latitude: -22.7864, longitude: -43.3083, populacao: 872762, regiao: 'Sudeste' },
+  { id: 'belo-horizonte-mg', nome: 'Belo Horizonte', estado: 'MG', latitude: -19.8267, longitude: -43.9427, populacao: 2530000, regiao: 'Sudeste' },
+  { id: 'contagem-mg', nome: 'Contagem', estado: 'MG', latitude: -19.9328, longitude: -44.0548, populacao: 669584, regiao: 'Sudeste' },
+  { id: 'betim-mg', nome: 'Betim', estado: 'MG', latitude: -19.9658, longitude: -44.1911, populacao: 449504, regiao: 'Sudeste' },
+  { id: 'salvador-ba', nome: 'Salvador', estado: 'BA', latitude: -12.9822, longitude: -38.5104, populacao: 2920000, regiao: 'Nordeste' },
+  { id: 'feira-santana-ba', nome: 'Feira de Santana', estado: 'BA', latitude: -12.2667, longitude: -38.9667, populacao: 623428, regiao: 'Nordeste' },
+  { id: 'recife-pe', nome: 'Recife', estado: 'PE', latitude: -8.2880, longitude: -35.0835, populacao: 1617183, regiao: 'Nordeste' },
+  { id: 'jaboatao-pe', nome: 'Jaboatão dos Guararapes', estado: 'PE', latitude: -8.1137, longitude: -35.0035, populacao: 715454, regiao: 'Nordeste' },
+  { id: 'fortaleza-ce', nome: 'Fortaleza', estado: 'CE', latitude: -3.7319, longitude: -38.5267, populacao: 2669342, regiao: 'Nordeste' },
+  { id: 'caucaia-ce', nome: 'Caucaia', estado: 'CE', latitude: -3.7392, longitude: -38.6542, populacao: 348227, regiao: 'Nordeste' },
+  { id: 'porto-alegre-rs', nome: 'Porto Alegre', estado: 'RS', latitude: -30.0346, longitude: -51.2177, populacao: 1427641, regiao: 'Sul' },
+  { id: 'caxias-do-sul-rs', nome: 'Caxias do Sul', estado: 'RS', latitude: -29.1679, longitude: -51.1850, populacao: 489135, regiao: 'Sul' },
+  { id: 'blumenau-sc', nome: 'Blumenau', estado: 'SC', latitude: -26.9196, longitude: -49.0650, populacao: 342601, regiao: 'Sul' },
+  { id: 'joinville-sc', nome: 'Joinville', estado: 'SC', latitude: -26.3045, longitude: -48.8487, populacao: 596464, regiao: 'Sul' },
+  { id: 'curitiba-pr', nome: 'Curitiba', estado: 'PR', latitude: -25.4284, longitude: -49.2733, populacao: 1963726, regiao: 'Sul' },
+  { id: 'londrina-pr', nome: 'Londrina', estado: 'PR', latitude: -23.3100, longitude: -51.1628, populacao: 570559, regiao: 'Sul' },
+  { id: 'brasilia-df', nome: 'Brasília', estado: 'DF', latitude: -15.7942, longitude: -47.8822, populacao: 3124086, regiao: 'Centro-Oeste' },
+  { id: 'goiania-go', nome: 'Goiânia', estado: 'GO', latitude: -16.6869, longitude: -49.2645, populacao: 1536097, regiao: 'Centro-Oeste' },
+  { id: 'manaus-am', nome: 'Manaus', estado: 'AM', latitude: -3.1190, longitude: -60.0217, populacao: 2225000, regiao: 'Norte' },
+  { id: 'belem-pa', nome: 'Belém', estado: 'PA', latitude: -1.4560, longitude: -48.5044, populacao: 1498000, regiao: 'Norte' },
+]
+
+export const REGIOES: Regiao[] = [
+  { id: 'sudeste', nome: 'Sudeste', estados: ESTADOS.filter(e => e.regiao === 'Sudeste') },
+  { id: 'sul', nome: 'Sul', estados: ESTADOS.filter(e => e.regiao === 'Sul') },
+  { id: 'nordeste', nome: 'Nordeste', estados: ESTADOS.filter(e => e.regiao === 'Nordeste') },
+  { id: 'centro-oeste', nome: 'Centro-Oeste', estados: ESTADOS.filter(e => e.regiao === 'Centro-Oeste') },
+  { id: 'norte', nome: 'Norte', estados: ESTADOS.filter(e => e.regiao === 'Norte') },
+]
+
+export default null

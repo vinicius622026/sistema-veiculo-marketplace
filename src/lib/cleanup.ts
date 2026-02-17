@@ -18,7 +18,7 @@ function extractBucketAndPath(publicUrl: string) {
 }
 
 export async function runCleanup(buckets: string[] = ['anuncios'], pageSize = 1000) {
-  const anuncios = await prisma.anuncio.findMany({ select: { foto_url: true, thumbnail_url: true } })
+  const anuncios = await (prisma as any).anuncio.findMany({ select: { foto_url: true, thumbnail_url: true } })
   const referenced = new Set<string>()
   for (const a of anuncios) {
     if ((a as any).foto_url) {
