@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useState } from 'react'
 
 interface Veiculo { id: string; marca: string; modelo: string; ano: number; valor: number }
