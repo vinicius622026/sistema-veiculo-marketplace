@@ -90,4 +90,52 @@ describe('API /api/anuncios (integração)', () => {
     const res = await POST(req)
     expect(res.status).toBe(400)
   })
+
+  it('POST cria anúncio com imagens básicas quando autenticado e autorizado', async () => {
+    ;(supabaseAdmin.auth.getUser as jest.Mock).mockResolvedValue({
+      data: { user: { id: 'user-1' } },
+      error: null,
+    })
+
+    ;(prisma.revenda.findUnique as jest.Mock).mockResolvedValue({ id: 'rev-1', owner_id: 'user-1' })
+    ;(prisma.veiculo.create as jest.Mock).mockResolvedValue({ id: 'estoque-1' })
+    ;(prisma.anuncio.create as jest.Mock).mockResolvedValue({
+      id: 'anuncio-1',
+      titulo: 'Carro com imagens',
+      preco: 25000,
+      foto_url: 'https://via.placeholder.com/600x400.png',
+      thumbnail_url: 'https://via.placeholder.com/200x150.png',
+    })
+
+    const payload = {
+      titulo: 'Carro com imagens',
+      descricao: 'Descrição com imagens básicas',
+      preco: 25000,
+      revenda_id: 'rev-1',
+      cidade: 'Cidade',
+      estado: 'SP',
+      foto: 'https://via.placeholder.com/600x400.png',
+      thumbnail: 'https://via.placeholder.com/200x150.png',
+    }
+
+    const req = new Request('http://localhost:3000/api/anuncios', {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer token-valido',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const res = await POST(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body).toMatchObject({
+      id: 'anuncio-1',
+      titulo: 'Carro com imagens',
+      foto_url: payload.foto,
+      thumbnail_url: payload.thumbnail,
+    })
+  })
 })
