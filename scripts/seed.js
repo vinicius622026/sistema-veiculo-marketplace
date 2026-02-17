@@ -1,22 +1,63 @@
 #!/usr/bin/env node
 require('dotenv').config()
 const { PrismaClient } = require('@prisma/client')
+const { createClient } = require('@supabase/supabase-js')
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('Starting seed...')
 
-  // Create or ensure user
+  // Create or ensure user (optionally create in Supabase Auth)
   const userEmail = process.env.SEED_USER_EMAIL || 'seed+admin@local.test'
-  const user = await prisma.user.upsert({
-    where: { email: userEmail },
-    update: { full_name: 'Seed Admin' },
-    create: {
-      email: userEmail,
-      full_name: 'Seed Admin',
-      tipo_usuario: 'revenda'
+  const seedPassword = process.env.SEED_USER_PASSWORD || 'Gratida1'
+  let supabaseUserId = null
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE
+
+  if (supabaseUrl && serviceKey) {
+    try {
+      const supabaseAdmin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+      console.log('Creating user in Supabase Auth (admin)...')
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        email: userEmail,
+        password: seedPassword,
+        email_confirm: true
+      })
+      if (error) {
+        console.warn('Supabase admin createUser error:', error.message || error)
+      } else if (data && data.user) {
+        supabaseUserId = data.user.id
+        console.log('Created Supabase auth user:', supabaseUserId)
+      }
+    } catch (e) {
+      console.warn('Supabase admin create failed:', e.message || e)
     }
-  })
+  }
+
+  let user
+  if (supabaseUserId) {
+    user = await prisma.user.upsert({
+      where: { id: supabaseUserId },
+      update: { email: userEmail, full_name: 'Seed Admin' },
+      create: {
+        id: supabaseUserId,
+        email: userEmail,
+        full_name: 'Seed Admin',
+        tipo_usuario: 'revenda'
+      }
+    })
+  } else {
+    user = await prisma.user.upsert({
+      where: { email: userEmail },
+      update: { full_name: 'Seed Admin' },
+      create: {
+        email: userEmail,
+        full_name: 'Seed Admin',
+        tipo_usuario: 'revenda'
+      }
+    })
+  }
   console.log('Ensured user:', user.email, user.id)
 
   // Ensure a revenda for this user
