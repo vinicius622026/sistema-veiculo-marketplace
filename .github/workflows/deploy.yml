@@ -33,14 +33,18 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
-      - name: Run Prisma migrations
+      - name: Deploy Supabase migrations via Supabase CLI (avoids direct 5432)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          echo "Running Prisma migrations (if any)"
-          pnpm prisma migrate deploy || true
-          echo "Running seed script if available"
+          echo "Installing Supabase CLI"
+          pnpm add -g supabase@latest
+          echo "Deploying migrations with Supabase CLI (project ref: ${SUPABASE_PROJECT_REF})"
+          supabase migrations deploy --project-ref "${SUPABASE_PROJECT_REF}" || true
+          echo "Note: Prisma migrations (postgres:5432) are skipped in favor of Supabase API delivery."
+          echo "Running seed script if available (may still attempt DB connection)"
           pnpm run seed || true
 
   vercel-deploy:
