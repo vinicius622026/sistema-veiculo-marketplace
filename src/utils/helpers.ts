@@ -1,3 +1,12 @@
+export function getWhatsAppLink(phone: string | undefined, text?: string) {
+  if (!phone) return '#'
+  const cleaned = phone.replace(/[^0-9+]/g, '')
+  const msg = text ? encodeURIComponent(text) : ''
+  // Use wa.me link format
+  return `https://wa.me/${cleaned}${msg ? `?text=${msg}` : ''}`
+}
+
+export default { getWhatsAppLink }
 export function getInitials(name: string | undefined): string {
   if (!name) return '?'
   return name
