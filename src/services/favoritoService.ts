@@ -1,51 +1,64 @@
-class FavoritoService {
-    constructor() {
-        this.favorites = new Map(); // Using a Map to store favorites by user ID
-    }
+import { supabase } from './supabaseClient'
 
-    // Get all favorites
-    getAll() {
-        return Array.from(this.favorites.values()).flat();
-    }
+export async function adicionarFavorito(userId: string, anuncioId: string): Promise<any> {
+  try {
+    const { data, error } = await supabase
+      .from('favoritos')
+      .insert([{ user_id: userId, anuncio_id: anuncioId }])
+      .select()
+      .single()
 
-    // Get favorite by ID
-    getById(userId, favoriteId) {
-        const userFavorites = this.favorites.get(userId);
-        return userFavorites ? userFavorites.find(fav => fav.id === favoriteId) : null;
-    }
-
-    // Check if an item is a favorite
-    isFavorite(userId, itemId) {
-        const userFavorites = this.favorites.get(userId);
-        return userFavorites ? userFavorites.some(fav => fav.id === itemId) : false;
-    }
-
-    // Add a favorite
-    addFavorite(userId, item) {
-        if (!this.favorites.has(userId)) {
-            this.favorites.set(userId, []);
-        }
-        this.favorites.get(userId).push(item);
-    }
-
-    // Remove a favorite
-    removeFavorite(userId, favoriteId) {
-        const userFavorites = this.favorites.get(userId);
-        if (userFavorites) {
-            this.favorites.set(userId, userFavorites.filter(fav => fav.id !== favoriteId));
-        }
-    }
-
-    // Get favorite count
-    getFavoriteCount(userId) {
-        const userFavorites = this.favorites.get(userId);
-        return userFavorites ? userFavorites.length : 0;
-    }
-
-    // Get user favorites
-    getUserFavorites(userId) {
-        return this.favorites.get(userId) || [];
-    }
+    if (error) throw error
+    return data
+  } catch (error) {
+    console.error('Erro ao adicionar favorito:', error)
+    throw new Error('Erro ao adicionar favorito')
+  }
 }
 
-export default FavoritoService;
+export async function removerFavorito(userId: string, anuncioId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('favoritos')
+      .delete()
+      .eq('user_id', userId)
+      .eq('anuncio_id', anuncioId)
+
+    if (error) throw error
+  } catch (error) {
+    console.error('Erro ao remover favorito:', error)
+    throw new Error('Erro ao remover favorito')
+  }
+}
+
+export async function listarFavoritos(userId: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('favoritos')
+      .select('anuncio_id')
+      .eq('user_id', userId)
+
+    if (error) throw error
+    return data?.map((f: any) => f.anuncio_id) || []
+  } catch (error) {
+    console.error('Erro ao listar favoritos:', error)
+    return []
+  }
+}
+
+export async function isFavorito(userId: string, anuncioId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('favoritos')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('anuncio_id', anuncioId)
+      .single()
+
+    if (error && (error as any).code !== 'PGRST116') throw error
+    return !!data
+  } catch (error) {
+    console.error('Erro ao verificar favorito:', error)
+    return false
+  }
+}

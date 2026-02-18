@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { formatCurrency, formatPhone, formatDocument, formatDate } from '@/utils/formatters'
 
 describe('Formatters', () => {

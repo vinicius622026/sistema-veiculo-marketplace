@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { getInitials, getStatusColor, truncate } from '@/utils/helpers'
 
 describe('Helpers', () => {

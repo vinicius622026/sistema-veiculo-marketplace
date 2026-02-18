@@ -1,4 +1,45 @@
+/// <reference types="jest" />
 /** @jest-environment node */
+
+import '@testing-library/jest-dom'
+// @ts-ignore
+
+const jExpect: any = expect
+
+class MockRequest {
+  url: string
+  method?: string
+  private _headers: Record<string, string>
+  private _body?: string
+  constructor(url: string, opts?: any) {
+    this.url = url
+    this.method = opts?.method
+    this._body = opts?.body
+    this._headers = {}
+    const headers = opts?.headers || {}
+    for (const k of Object.keys(headers)) this._headers[k.toLowerCase()] = headers[k]
+  }
+  headers = {
+    get: (k: string) => this._headers[k.toLowerCase()] || null,
+  }
+  async json() {
+    return this._body ? JSON.parse(this._body) : {}
+  }
+}
+;(global as any).Request = MockRequest
+
+class MockResponse {
+  status: number
+  private _body: any
+  constructor(body?: any, init?: any) {
+    this._body = body
+    this.status = init?.status ?? 200
+  }
+  async json() {
+    return typeof this._body === 'string' ? JSON.parse(this._body) : this._body
+  }
+}
+;(global as any).Response = MockResponse
 
 jest.mock('../../../src/lib/prisma', () => ({
   prisma: {
@@ -30,7 +71,12 @@ jest.mock('../../../src/lib/supabaseAdmin', () => ({
   },
 }))
 
-import { GET, POST } from '../../../app/api/anuncios/route'
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (body: any, init?: any) => new (global as any).Response(body, init),
+  },
+}))
+
 import { prisma } from '../../../src/lib/prisma'
 import supabaseAdmin from '../../../src/lib/supabaseAdmin'
 
@@ -45,20 +91,22 @@ describe('API /api/anuncios (integração)', () => {
       { id: 'a1', titulo: 'Teste', preco: 1000 },
     ])
 
+    const { GET } = await import('../../../app/api/anuncios/route')
     const req = new Request('http://localhost:3000/api/anuncios?page=1&perPage=12')
     const res = await GET(req)
     const body = await res.json()
 
-    expect(res.status).toBe(200)
-    expect(body).toMatchObject({
+    jExpect(res.status).toBe(200)
+    jExpect(body).toMatchObject({
       total: 1,
       page: 1,
       perPage: 12,
     })
-    expect(Array.isArray(body.items)).toBe(true)
+    jExpect(Array.isArray(body.items)).toBe(true)
   })
 
   it('POST deve retornar 401 sem Authorization', async () => {
+    const { POST } = await import('../../../app/api/anuncios/route')
     const req = new Request('http://localhost:3000/api/anuncios', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -68,8 +116,8 @@ describe('API /api/anuncios (integração)', () => {
     const res = await POST(req)
     const body = await res.json()
 
-    expect(res.status).toBe(401)
-    expect(body).toMatchObject({ error: 'Unauthorized' })
+    jExpect(res.status).toBe(401)
+    jExpect(body).toMatchObject({ error: 'Unauthorized' })
   })
 
   it('POST deve retornar 400 para payload inválido autenticado', async () => {
@@ -78,6 +126,7 @@ describe('API /api/anuncios (integração)', () => {
       error: null,
     })
 
+    const { POST } = await import('../../../app/api/anuncios/route')
     const req = new Request('http://localhost:3000/api/anuncios', {
       method: 'POST',
       headers: {
@@ -88,7 +137,7 @@ describe('API /api/anuncios (integração)', () => {
     })
 
     const res = await POST(req)
-    expect(res.status).toBe(400)
+    jExpect(res.status).toBe(400)
   })
 
   it('POST cria anúncio com imagens básicas quando autenticado e autorizado', async () => {
@@ -118,6 +167,7 @@ describe('API /api/anuncios (integração)', () => {
       thumbnail: 'https://via.placeholder.com/200x150.png',
     }
 
+    const { POST } = await import('../../../app/api/anuncios/route')
     const req = new Request('http://localhost:3000/api/anuncios', {
       method: 'POST',
       headers: {
@@ -130,8 +180,8 @@ describe('API /api/anuncios (integração)', () => {
     const res = await POST(req)
     const body = await res.json()
 
-    expect(res.status).toBe(200)
-    expect(body).toMatchObject({
+    jExpect(res.status).toBe(200)
+    jExpect(body).toMatchObject({
       id: 'anuncio-1',
       titulo: 'Carro com imagens',
       foto_url: payload.foto,

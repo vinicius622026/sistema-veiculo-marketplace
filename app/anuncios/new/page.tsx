@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import Protected from '../../../src/components/Protected'
-import supabase from '../../../src/lib/supabaseClient'
+import supabase from '../../../src/services/supabaseClient'
 
 export default function NewAnuncio() {
   const [titulo, setTitulo] = useState('')

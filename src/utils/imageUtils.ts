@@ -1,83 +1,65 @@
-// imageUtils.ts
+export async function compressImage(
+  file: File,
+  maxWidth: number = 1920,
+  maxHeight: number = 1440,
+  quality: number = 0.8
+): Promise<File> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('Arquivo não é uma imagem'))
+      return
+    }
 
-/**
- * Image compression, resizing, and processing utilities
- */
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target?.result as string
 
-/**
- * Compress image to reduce its file size
- * @param {File} imageFile - The image file to compress
- * @returns {Promise<Blob>} - The compressed image as a Blob
- */
-async function compressImage(imageFile) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = URL.createObjectURL(imageFile);
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            // Set canvas dimensions to image dimensions
-            canvas.width = img.width;
-            canvas.height = img.height;
-            // Draw the image on the canvas
-            ctx.drawImage(img, 0, 0);
-            // Compress the image
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    resolve(blob);
-                } else {
-                    reject(new Error('Compression failed')); 
-                }
-            }, 'image/jpeg', 0.8); // 80% quality
-        };
-        img.onerror = (error) => {
-            reject(error);
-        };
-    });
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Canvas não disponível'))
+          return
+        }
+
+        let width = img.width
+        let height = img.height
+
+        if (width > height && width > maxWidth) {
+          height *= maxWidth / width
+          width = maxWidth
+        }
+        if (height >= width && height > maxHeight) {
+          width *= maxHeight / height
+          height = maxHeight
+        }
+
+        canvas.width = width
+        canvas.height = height
+        ctx.drawImage(img, 0, 0, width, height)
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Falha ao comprimir imagem'))
+              return
+            }
+            const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            })
+            resolve(compressed)
+          },
+          'image/jpeg',
+          quality
+        )
+      }
+
+      img.onerror = () => reject(new Error('Falha ao carregar imagem'))
+    }
+
+    reader.onerror = () => reject(new Error('Falha ao ler arquivo'))
+    reader.readAsDataURL(file)
+  })
 }
-
-/**
- * Resize image to new dimensions
- * @param {File} imageFile - The image file to resize
- * @param {number} width - The desired width
- * @param {number} height - The desired height
- * @returns {Promise<Blob>} - The resized image as a Blob
- */
-async function resizeImage(imageFile, width, height) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = URL.createObjectURL(imageFile);
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    resolve(blob);
-                } else {
-                    reject(new Error('Resizing failed'));
-                }
-            }, imageFile.type, 0.8);
-        };
-        img.onerror = (error) => {
-            reject(error);
-        };
-    });
-}
-
-/**
- * Process image with compression and resizing
- * @param {File} imageFile - The image file to process
- * @param {number} targetWidth - The target width after resizing
- * @param {number} targetHeight - The target height after resizing
- * @returns {Promise<Blob>} - The processed image as a Blob
- */
-async function processImage(imageFile, targetWidth, targetHeight) {
-    const compressedImage = await compressImage(imageFile);
-    const processedImage = await resizeImage(compressedImage, targetWidth, targetHeight);
-    return processedImage;
-}
-
-export { compressImage, resizeImage, processImage };

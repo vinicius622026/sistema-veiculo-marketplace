@@ -1,67 +1,41 @@
-// Utility functions for formatting and other utilities
+export function formatCurrency(value?: number) {
+  if (value == null) return 'R$ 0,00'
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+export function getWhatsAppLink(phone: string | undefined, text?: string) {
+  if (!phone) return '#'
+  const cleaned = phone.replace(/[^0-9+]/g, '')
+  const msg = text ? encodeURIComponent(text) : ''
+  // Use wa.me link format
+  return `https://wa.me/${cleaned}${msg ? `?text=${msg}` : ''}`
+}
 
-// Format CPF
-export const formatCPF = (cpf: string): string => {
-    return cpf.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-};
+export default { getWhatsAppLink }
+export function getInitials(name: string | undefined): string {
+  if (!name) return '?'
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
 
-// Format CNPJ
-export const formatCNPJ = (cnpj: string): string => {
-    return cnpj.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{5})(\d)/, '$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-};
+export function getStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    ativa: 'bg-green-100 text-green-800',
+    proposta: 'bg-yellow-100 text-yellow-800',
+    pausada: 'bg-orange-100 text-orange-800',
+    cancelada: 'bg-red-100 text-red-800',
+    completa: 'bg-blue-100 text-blue-800',
+    disponivel: 'bg-green-100 text-green-800',
+    vendido: 'bg-gray-100 text-gray-800',
+    manutencao: 'bg-yellow-100 text-yellow-800',
+  }
+  return colors[status] || 'bg-gray-100 text-gray-800'
+}
 
-// Format phone number
-export const formatPhone = (phone: string): string => {
-    return phone.replace(/\D/g, '').replace(/(\d{2})(\d{5})(\d)/, '($1) $2-$3');
-};
-
-// Format CEP
-export const formatCEP = (cep: string): string => {
-    return cep.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
-};
-
-// Format vehicle plate
-export const formatPlate = (plate: string): string => {
-    return plate.toUpperCase(); // Simple conversion to uppercase
-};
-
-// Format currency
-export const formatCurrency = (value: number): string => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-};
-
-// Format date
-export const formatDate = (date: Date): string => {
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD
-};
-
-// Debounce function
-export const debounce = (func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout | null;
-    return (...args: any[]) => {
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            func.apply(null, args);
-        }, delay);
-    };
-};
-
-// Throttle function
-export const throttle = (func: Function, limit: number) => {
-    let lastFunc: ReturnType<typeof setTimeout>;
-    let lastRan: number;
-    return function(...args: any[]) {
-        if (!lastRan) {
-            func.apply(this, args);
-            lastRan = Date.now();
-        } else {
-            clearTimeout(lastFunc);
-            lastFunc = setTimeout(() => {
-                if (Date.now() - lastRan >= limit) {
-                    func.apply(this, args);
-                    lastRan = Date.now();
-                }
-            }, limit - (Date.now() - lastRan));
-        }
-    };
-};
+export function truncate(text: string | undefined, length: number = 100): string {
+  if (!text) return ''
+  return text.length > length ? text.slice(0, length) + '...' : text
+}

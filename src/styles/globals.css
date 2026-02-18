@@ -1,39 +1,39 @@
-.st0{animation:fadeIn 0.5s;}
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add global styles below */
+:root {
+  --brand: #0f4c5c;
+  --brand-accent: #f2a65a;
+  --ink: #0f172a;
+  --muted: #64748b;
 }
 
-@keyframes slideIn {
-  0% { transform: translateY(-100px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+html, body, #__next {
+  height: 100%;
 }
 
-@keyframes spin-slow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+body {
+  /* Substitui `@apply` para evitar erro de build do Tailwind no ambiente dev */
+  background-color: #f8fafc; /* slate-50 */
+  color: var(--ink);
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background-image:
+    radial-gradient(800px 400px at 10% -10%, rgba(15, 76, 92, 0.08), transparent 60%),
+    radial-gradient(700px 300px at 90% -20%, rgba(242, 166, 90, 0.12), transparent 55%);
+  background-repeat: no-repeat;
 }
 
-/* Custom Components */
-
-.input {
-  @apply border rounded px-3 py-2;
+h1, h2, h3, .display-font {
+  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
-.card {
-  @apply shadow-lg rounded-lg p-4;
-}
-
-.btn {
-  @apply bg-blue-500 text-white rounded px-4 py-2;
-}
-
-/* Utilities */
-
-/* Line-Clamp Utilities */
-.line-clamp {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.25);
 }

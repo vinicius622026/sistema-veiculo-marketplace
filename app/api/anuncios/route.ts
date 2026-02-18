@@ -33,6 +33,10 @@ export async function GET(req: Request) {
     const cidade = q.get('cidade') || undefined
     const minPrice = q.get('minPrice') ? Number(q.get('minPrice')) : undefined
     const maxPrice = q.get('maxPrice') ? Number(q.get('maxPrice')) : undefined
+    const minAno = q.get('minAno') ? Number(q.get('minAno')) : undefined
+    const maxAno = q.get('maxAno') ? Number(q.get('maxAno')) : undefined
+    const minKm = q.get('minKm') ? Number(q.get('minKm')) : undefined
+    const maxKm = q.get('maxKm') ? Number(q.get('maxKm')) : undefined
     const sort = q.get('sort') || 'recent'
     const page = q.get('page') ? Math.max(1, Number(q.get('page'))) : 1
     const perPage = q.get('perPage') ? Math.max(1, Number(q.get('perPage'))) : 12
@@ -51,17 +55,35 @@ export async function GET(req: Request) {
     // filter by veiculo.marca using relation filter
     const veiculoFilter: any = {}
     if (marca) veiculoFilter.marca = { contains: marca, mode: 'insensitive' }
+    if (minAno !== undefined || maxAno !== undefined) {
+      veiculoFilter.ano = {}
+      if (minAno !== undefined) veiculoFilter.ano.gte = minAno
+      if (maxAno !== undefined) veiculoFilter.ano.lte = maxAno
+    }
+    if (minKm !== undefined || maxKm !== undefined) {
+      veiculoFilter.km = {}
+      if (minKm !== undefined) veiculoFilter.km.gte = minKm
+      if (maxKm !== undefined) veiculoFilter.km.lte = maxKm
+    }
 
     // build order
     let orderBy: any = { created_at: 'desc' }
     if (sort === 'price_asc') orderBy = { preco: 'asc' }
     else if (sort === 'price_desc') orderBy = { preco: 'desc' }
     else if (sort === 'visitas') orderBy = { visitas: 'desc' }
+    else if (sort === 'year_desc') orderBy = { veiculo: { ano: 'desc' } }
+    else if (sort === 'year_asc') orderBy = { veiculo: { ano: 'asc' } }
+    else if (sort === 'km_asc') orderBy = { veiculo: { km: 'asc' } }
+    else if (sort === 'km_desc') orderBy = { veiculo: { km: 'desc' } }
 
-    const total = await prisma.anuncio.count({ where: { AND: [where, marca ? { veiculo: veiculoFilter } : {}] } })
+    const andFilters: any[] = [where]
+    if (Object.keys(veiculoFilter).length > 0) andFilters.push({ veiculo: veiculoFilter })
+    const finalWhere = { AND: andFilters }
+
+    const total = await prisma.anuncio.count({ where: finalWhere })
 
     const items = await prisma.anuncio.findMany({
-      where: { AND: [where, marca ? { veiculo: veiculoFilter } : {}] },
+      where: finalWhere,
       include: { veiculo: true },
       orderBy,
       skip: (page - 1) * perPage,
