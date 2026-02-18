@@ -1,83 +1,59 @@
 // imageUtils.ts
 
 /**
- * Image compression, resizing, and processing utilities
+ * Compresses images to reduce their file size.
+ * @param {File} file - The image file to compress.
+ * @returns {Promise<File>} - The compressed image file.
  */
-
-/**
- * Compress image to reduce its file size
- * @param {File} imageFile - The image file to compress
- * @returns {Promise<Blob>} - The compressed image as a Blob
- */
-async function compressImage(imageFile) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = URL.createObjectURL(imageFile);
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            // Set canvas dimensions to image dimensions
-            canvas.width = img.width;
-            canvas.height = img.height;
-            // Draw the image on the canvas
-            ctx.drawImage(img, 0, 0);
-            // Compress the image
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    resolve(blob);
-                } else {
-                    reject(new Error('Compression failed')); 
-                }
-            }, 'image/jpeg', 0.8); // 80% quality
-        };
-        img.onerror = (error) => {
-            reject(error);
-        };
-    });
+async function compressImage(file) {
+    // Logic to compress image
 }
 
 /**
- * Resize image to new dimensions
- * @param {File} imageFile - The image file to resize
- * @param {number} width - The desired width
- * @param {number} height - The desired height
- * @returns {Promise<Blob>} - The resized image as a Blob
+ * Resizes images to the specified width and height.
+ * @param {File} file - The image file to resize.
+ * @param {number} width - The new width.
+ * @param {number} height - The new height.
+ * @returns {Promise<File>} - The resized image file.
  */
-async function resizeImage(imageFile, width, height) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = URL.createObjectURL(imageFile);
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    resolve(blob);
-                } else {
-                    reject(new Error('Resizing failed'));
-                }
-            }, imageFile.type, 0.8);
-        };
-        img.onerror = (error) => {
-            reject(error);
-        };
-    });
+async function resizeImage(file, width, height) {
+    // Logic to resize image
 }
 
 /**
- * Process image with compression and resizing
- * @param {File} imageFile - The image file to process
- * @param {number} targetWidth - The target width after resizing
- * @param {number} targetHeight - The target height after resizing
- * @returns {Promise<Blob>} - The processed image as a Blob
+ * Gets the dimensions of an image.
+ * @param {File} file - The image file to get dimensions from.
+ * @returns {Promise<{width: number, height: number}>} - The width and height of the image.
  */
-async function processImage(imageFile, targetWidth, targetHeight) {
-    const compressedImage = await compressImage(imageFile);
-    const processedImage = await resizeImage(compressedImage, targetWidth, targetHeight);
-    return processedImage;
+async function getImageDimensions(file) {
+    // Logic to get image dimensions
 }
 
-export { compressImage, resizeImage, processImage };
+/**
+ * Validates whether the file is a valid image.
+ * @param {File} file - The image file to validate.
+ * @returns {boolean} - True if the file is a valid image, else false.
+ */
+function validateImageFile(file) {
+    // Logic to validate image file
+}
+
+/**
+ * Converts an image file to a base64 string.
+ * @param {File} file - The image file to convert.
+ * @returns {Promise<string>} - The base64 representation of the image.
+ */
+async function convertToBase64(file) {
+    // Logic to convert file to base64
+}
+
+/**
+ * Generates a thumbnail for the given image file.
+ * @param {File} file - The image file to create a thumbnail from.
+ * @param {number} width - The thumbnail width.
+ * @param {number} height - The thumbnail height.
+ * @returns {Promise<File>} - The thumbnail image file.
+ */
+async function generateThumbnail(file, width, height) {
+    // Logic to generate thumbnail
+}
