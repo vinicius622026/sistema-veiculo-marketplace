@@ -1,56 +1,31 @@
-import { supabase } from './supabaseClient'
+// veiculoService.ts
 
-export const veiculoService = {
-  async getAll() {
-    const { data, error } = await supabase.from('veiculos').select('*')
-    if (error) throw error
-    return data
-  },
+// Function to get all vehicles
+export const getAllVehicles = async () => {
+    // Logic to fetch all vehicles
+};
 
-  async getById(id: string) {
-    const { data, error } = await supabase.from('veiculos').select('*').eq('id', id).single()
-    if (error) throw error
-    return data
-  },
+// Function to get a vehicle by ID
+export const getVehicleById = async (id: string) => {
+    // Logic to fetch a vehicle by its ID
+};
 
-  async getByLojaId(lojaId: string) {
-    const { data, error } = await supabase.from('veiculos').select('*').eq('loja_id', lojaId)
-    if (error) throw error
-    return data
-  },
+// Function to create a new vehicle
+export const createVehicle = async (vehicleData: any) => {
+    // Logic to create a vehicle
+};
 
-  async create(veiculo: any) {
-    const { data, error } = await supabase.from('veiculos').insert([veiculo]).select()
-    if (error) throw error
-    return data[0]
-  },
+// Function to update a vehicle
+export const updateVehicle = async (id: string, vehicleData: any) => {
+    // Logic to update a vehicle
+};
 
-  async update(id: string, updates: any) {
-    const { data, error } = await supabase
-      .from('veiculos')
-      .update(updates)
-      .eq('id', id)
-      .select()
-    if (error) throw error
-    return data[0]
-  },
+// Function to delete a vehicle
+export const deleteVehicle = async (id: string) => {
+    // Logic to delete a vehicle
+};
 
-  async delete(id: string) {
-    const { error } = await supabase.from('veiculos').delete().eq('id', id)
-    if (error) throw error
-  },
-
-  async search(filters: any) {
-    let query = supabase.from('veiculos').select('*')
-
-    if (filters.marca) query = query.ilike('marca', `%${filters.marca}%`)
-    if (filters.modelo) query = query.ilike('modelo', `%${filters.modelo}%`)
-    if (filters.ano) query = query.eq('ano', filters.ano)
-    if (filters.minPreco) query = query.gte('valor', filters.minPreco)
-    if (filters.maxPreco) query = query.lte('valor', filters.maxPreco)
-
-    const { data, error } = await query
-    if (error) throw error
-    return data
-  },
-}
+// Function to get vehicles by filter criteria
+export const getVehiclesByFilter = async (criteria: any) => {
+    // Logic to filter vehicles
+};
