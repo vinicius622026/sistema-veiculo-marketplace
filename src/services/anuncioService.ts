@@ -1,22 +1,61 @@
-export async function listarAnuncios(params?: Record<string, any>) {
-  const qs = new URLSearchParams()
-  if (params) {
-    Object.keys(params).forEach(k => { if (params[k] !== undefined && params[k] !== null) qs.set(k, String(params[k])) })
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://your-supabase-url';
+const supabaseKey = 'your-supabase-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export const anuncioService = {
+  async getAll() {
+    const { data, error } = await supabase.from('anuncios').select('*');
+    if (error) throw error;
+    return data;
+  },
+
+  async getById(id) {
+    const { data, error } = await supabase.from('anuncios').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getByVeiculoId(veiculoId) {
+    const { data, error } = await supabase.from('anuncios').select('*').eq('veiculo_id', veiculoId);
+    if (error) throw error;
+    return data;
+  },
+
+  async create(anuncio) {
+    const { data, error } = await supabase.from('anuncios').insert([anuncio]);
+    if (error) throw error;
+    return data;
+  },
+
+  async update(id, anuncio) {
+    const { data, error } = await supabase.from('anuncios').update(anuncio).eq('id', id);
+    if (error) throw error;
+    return data;
+  },
+
+  async delete(id) {
+    const { data, error } = await supabase.from('anuncios').delete().eq('id', id);
+    if (error) throw error;
+    return data;
+  },
+
+  async getActive() {
+    const { data, error } = await supabase.from('anuncios').select('*').eq('status', 'active');
+    if (error) throw error;
+    return data;
+  },
+
+  async deactivate(id) {
+    const { data, error } = await supabase.from('anuncios').update({ status: 'inactive' }).eq('id', id);
+    if (error) throw error;
+    return data;
+  },
+
+  async activate(id) {
+    const { data, error } = await supabase.from('anuncios').update({ status: 'active' }).eq('id', id);
+    if (error) throw error;
+    return data;
   }
-  const url = `/api/anuncios?${qs.toString()}`
-  const res = await fetch(url)
-  if (!res.ok) throw new Error('Erro ao listar anúncios')
-  return res.json()
-}
-
-export async function buscarAnuncio(id: string) {
-  const res = await fetch(`/api/anuncios/${id}`)
-  if (!res.ok) throw new Error('Anúncio não encontrado')
-  return res.json()
-}
-
-export async function criarAnuncio(dados: any) {
-  const res = await fetch('/api/anuncios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) })
-  if (!res.ok) throw new Error('Erro ao criar anúncio')
-  return res.json()
-}
+};
