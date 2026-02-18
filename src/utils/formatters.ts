@@ -1,35 +1,17 @@
-export function formatCurrency(value: number | undefined): string {
-  if (!value) return 'R$ 0,00'
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
+// formatters.ts
 
-export function formatDate(date: string | undefined): string {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('pt-BR')
-}
+/**
+ * Formats a date into a specific string format.
+ * @param date - The date object to format.
+ * @returns A string representing the formatted date.
+ */
+export function formatDate(date: Date): string {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
 
-export function formatDateTime(date: string | undefined): string {
-  if (!date) return '-'
-  return new Date(date).toLocaleString('pt-BR')
-}
-
-export function formatPhone(phone: string | undefined): string {
-  if (!phone) return '-'
-  return phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')
-}
-
-export function formatDocument(doc: string | undefined): string {
-  if (!doc) return '-'
-  if (doc && doc.length === 11) {
-    return doc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-  }
-  return doc ? doc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5') : '-'
-}
-
-export function formatPlate(plate: string | undefined): string {
-  if (!plate) return '-'
-  return plate.toUpperCase()
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
