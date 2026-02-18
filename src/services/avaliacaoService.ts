@@ -84,7 +84,15 @@ class AvaliacaoService {
   }
 }
 
-export default new AvaliacaoService()
+const avaliacaoService = new AvaliacaoService()
+
+export const getAvaliacoes = (veiculoId: string) => avaliacaoService.getAvaliacoes(veiculoId)
+export const createAvaliacao = (payload: any) => avaliacaoService.createAvaliacao(payload)
+export const updateAvaliacao = (id: string, payload: any) => avaliacaoService.updateAvaliacao(id, payload)
+export const deleteAvaliacao = (id: string) => avaliacaoService.deleteAvaliacao(id)
+export const getAverageRating = (veiculoId: string) => avaliacaoService.getAverageRating(veiculoId)
+
+export default avaliacaoService
 class AvaliacaoService {
     getAvaliacoes(veiculoId: string) { }
     createAvaliacao(data: any) { }
