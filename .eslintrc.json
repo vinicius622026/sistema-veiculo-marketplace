@@ -1,0 +1,1 @@
+{\n  "extends": [\n    "eslint:recommended",\n    "plugin:react/recommended",\n    "plugin:@next/next/recommended"\n  ],\n  "rules": {\n    "react/react-in-jsx-scope": "off"\n  }\n}
