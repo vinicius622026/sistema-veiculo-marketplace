@@ -1,3 +1,7 @@
+export function formatCurrency(value?: number) {
+  if (value == null) return 'R$ 0,00'
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
 export function getWhatsAppLink(phone: string | undefined, text?: string) {
   if (!phone) return '#'
   const cleaned = phone.replace(/[^0-9+]/g, '')

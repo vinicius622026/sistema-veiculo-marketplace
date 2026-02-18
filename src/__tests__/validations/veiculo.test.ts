@@ -1,4 +1,7 @@
+/// <reference types="jest" />
 import { criarVeiculoSchema } from '@/validations/veiculo'
+
+const jExpect: any = expect
 
 describe('Validações Veículo', () => {
   it('deve validar veículo correto', () => {
@@ -15,7 +18,7 @@ describe('Validações Veículo', () => {
     }
 
     const resultado = criarVeiculoSchema.safeParse(dados)
-    expect(resultado.success).toBe(true)
+    jExpect(resultado.success).toBe(true)
   })
 
   it('deve rejeitar marca vazia', () => {
@@ -32,7 +35,7 @@ describe('Validações Veículo', () => {
     }
 
     const resultado = criarVeiculoSchema.safeParse(dados)
-    expect(resultado.success).toBe(false)
+    jExpect(resultado.success).toBe(false)
   })
 
   it('deve rejeitar placa inválida', () => {
@@ -49,7 +52,7 @@ describe('Validações Veículo', () => {
     }
 
     const resultado = criarVeiculoSchema.safeParse(dados)
-    expect(resultado.success).toBe(false)
+    jExpect(resultado.success).toBe(false)
   })
 
   it('deve rejeitar chassi com menos de 17 caracteres', () => {
@@ -66,6 +69,6 @@ describe('Validações Veículo', () => {
     }
 
     const resultado = criarVeiculoSchema.safeParse(dados)
-    expect(resultado.success).toBe(false)
+    jExpect(resultado.success).toBe(false)
   })
 })

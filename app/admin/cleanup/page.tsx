@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import supabase from '../../../src/lib/supabaseClient'
+import supabase from '../../../src/services/supabaseClient'
 
 export default function AdminCleanup() {
   const [loading, setLoading] = useState(false)
