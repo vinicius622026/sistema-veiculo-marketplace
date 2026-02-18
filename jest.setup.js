@@ -1,28 +1,16 @@
-require('@testing-library/jest-dom')
+'use strict';
 
-jest.mock('@/services/supabaseClient', () => ({
-  supabase: {
-    auth: {
-      getUser: jest.fn(),
-      signUp: jest.fn(),
-      signInWithPassword: jest.fn(),
-      signOut: jest.fn(),
-    },
-    from: jest.fn(() => ({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-    })),
-  },
-}))
+// Jest setup file
 
-jest.mock('next/router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    query: {},
-    pathname: '/',
-  }),
-}))
+// Mocking Supabase
+const { createClient } = require('@supabase/supabase-js');
+
+const supabaseUrl = 'https://your-supabase-url.supabase.co';
+const supabaseAnonKey = 'your-anon-key';
+const mockSupabase = createClient(supabaseUrl, supabaseAnonKey);
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => mockSupabase),
+}));
+
+// Additional setup can be added here
