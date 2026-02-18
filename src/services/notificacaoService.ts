@@ -1,0 +1,1 @@
+// Notification Service Class\nclass NotificacaoService {\n    // Method to send notifications\n    sendNotification(message: string, userId: string) {\n        // Logic to send notification to user\n        console.log(`Notification sent to user ${userId}: ${message}`);\n    }\n}\n\nexport default NotificacaoService;
