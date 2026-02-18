@@ -80,3 +80,62 @@ export async function deletarVeiculo(id: string): Promise<boolean> {
     throw new Error('Erro ao deletar veículo. Tente novamente.')
   }
 }
+
+class VeiculoService {
+  async getAllVeiculos(): Promise<Veiculo[]> {
+    try {
+      const { data, error } = await supabase
+        .from('veiculos_estoque')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('Erro ao listar veículos:', error)
+      return []
+    }
+  }
+
+  async getVeiculoById(id: string): Promise<Veiculo | null> {
+    return buscarVeiculo(id)
+  }
+
+  async createVeiculo(data: any): Promise<Veiculo> {
+    const lojaId = data?.loja_id ?? data?.lojaId
+    if (!lojaId) {
+      throw new Error('Loja obrigatória para criar veículo.')
+    }
+
+    return criarVeiculo(lojaId, data)
+  }
+
+  async updateVeiculo(id: string, data: Partial<Veiculo>): Promise<Veiculo> {
+    return atualizarVeiculo(id, data)
+  }
+
+  async deleteVeiculo(id: string): Promise<boolean> {
+    return deletarVeiculo(id)
+  }
+
+  async searchVeiculos(query: string): Promise<Veiculo[]> {
+    const termo = query?.trim()
+    if (!termo) return []
+
+    try {
+      const { data, error } = await supabase
+        .from('veiculos_estoque')
+        .select('*')
+        .or(`marca.ilike.%${termo}%,modelo.ilike.%${termo}%,versao.ilike.%${termo}%`)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('Erro ao buscar veículos:', error)
+      return []
+    }
+  }
+}
+
+export default new VeiculoService()

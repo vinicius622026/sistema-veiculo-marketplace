@@ -1,12 +1,14 @@
 "use client"
 import React, { useState } from 'react'
-import supabase from '../../src/services/supabaseClient'
+import { useRouter } from 'next/navigation'
+import { supabase } from '../../src/services/supabaseClient'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const router = useRouter()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -15,7 +17,10 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (error) setMessage(error.message)
-    else setMessage('Login realizado. Recarregue a página.')
+    else {
+      setMessage('Login realizado.')
+      router.push('/')
+    }
   }
 
   return (

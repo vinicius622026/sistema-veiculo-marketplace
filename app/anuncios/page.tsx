@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import supabase from '../../src/lib/supabaseClient'
+import { supabase } from '../../src/services/supabaseClient'
 
 interface Veiculo { id: string; marca: string; modelo: string; ano: number; valor: number }
 interface Anuncio { id: string; titulo: string; preco: number; cidade: string; estado: string; veiculo: Veiculo }
