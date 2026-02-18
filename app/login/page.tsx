@@ -28,12 +28,10 @@ export default function LoginPage() {
       <h2 className="text-2xl font-semibold mb-4">Entrar</h2>
       <form onSubmit={handleLogin} className="space-y-4 bg-white p-4 rounded shadow-sm">
         <div>
-          <label className="block text-sm">Email</label>
-          <input className="w-full border px-3 py-2 rounded" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <FormInput label="Email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div>
-          <label className="block text-sm">Senha</label>
-          <input type="password" className="w-full border px-3 py-2 rounded" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <FormInput label="Senha" name="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <div>
           <button className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</button>
