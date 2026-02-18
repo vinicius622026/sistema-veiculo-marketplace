@@ -1,14 +1,39 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Add global styles below */
-html, body, #__next {
-  height: 100%;
+.st0{animation:fadeIn 0.5s;}
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
-body {
-  /* Substitui `@apply` para evitar erro de build do Tailwind no ambiente dev */
-  background-color: #F9FAFB; /* bg-gray-50 */
-  color: #111827; /* text-gray-900 */
+@keyframes slideIn {
+  0% { transform: translateY(-100px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Custom Components */
+
+.input {
+  @apply border rounded px-3 py-2;
+}
+
+.card {
+  @apply shadow-lg rounded-lg p-4;
+}
+
+.btn {
+  @apply bg-blue-500 text-white rounded px-4 py-2;
+}
+
+/* Utilities */
+
+/* Line-Clamp Utilities */
+.line-clamp {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
